@@ -29,13 +29,13 @@
                             class="btn-secondary"
                             modifiers="{'invisible': [('state_commercial', '!=', 'design_completed')]}"/>
                 </header>
-                <field name="devis_annule" invisible="1"/>
+                <field name="bat_cancel" invisible="1"/>
                 <div class="alert alert-danger text-center o_form_header" role="status"
-                     attrs="{'invisible': ['|', ('state', 'not in', ('draft','validation','nonvalide','cancel')), ('devis_annule', '=', False)]}">
+                   invisible = "bat_cancel != 'True' ">
                     <a class="close" data-dismiss="alert" href="#" aria-label="Close">x</a>
                     <div>
                         <strong>Raison de Refus :
-                            <field name="motif_validation_devis"/>
+                            <field name="invalidation_reason"/>
                         </strong>
                     </div>
                 </div>
