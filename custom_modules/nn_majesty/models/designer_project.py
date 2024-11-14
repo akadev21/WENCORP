@@ -61,6 +61,11 @@ class DesignerProject(models.Model):
         string="Référence",
         readonly=True
     )
+    bat_cancel = fields.Boolean(
+        related='reference_projet.bat_cancel',
+        string="bat_cancel",
+        readonly=True
+    )
 
     @api.model
     def create(self, vals):

@@ -8,7 +8,7 @@
         <field name="email_to">${object.designer.email|safe}</field>
         <field name="body_html">
             <![CDATA[
-            <p>Bonjour ${object.designer.name},</p>
+            <p>Bonjour ${designer.name},</p>
             <p>Le projet <b>${object.project}</b> est prêt pour la conception. Veuillez consulter les détails dans Odoo.</p>
             <p>Cordialement,</p>
             <p>${user.name}</p>

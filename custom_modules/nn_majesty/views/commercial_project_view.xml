@@ -15,7 +15,7 @@
                             string="Envoyer au Designer"
                             type="object"
                             class="btn-primary"
-                            modifiers="{'invisible': [('state_commercial', '!=', 'preparation')]}"/>
+                             invisible=" state_commercial != 'preparation'"/>
 
                     <!-- Button to validate designer -->
                     <button name="action_send_to_designer"
@@ -31,7 +31,7 @@
                 </header>
                 <field name="bat_cancel" invisible="1"/>
                 <div class="alert alert-danger text-center o_form_header" role="status"
-                   invisible = "bat_cancel != 'True' ">
+                     invisible=" bat_cancel != True">
                     <a class="close" data-dismiss="alert" href="#" aria-label="Close">x</a>
                     <div>
                         <strong>Raison de Refus :

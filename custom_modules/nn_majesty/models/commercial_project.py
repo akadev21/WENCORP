@@ -28,8 +28,6 @@ class ProjectProjectInherit(models.Model):
     document_ids = fields.One2many('commercial.documents', 'project_id')
     product_ids = fields.One2many('commercial.products', 'project_id')
 
-
-
     state_commercial = fields.Selection(
         [
             ('preparation', 'Préparation'),
@@ -45,7 +43,6 @@ class ProjectProjectInherit(models.Model):
     @api.onchange('designer')
     def _onchange_designer(self):
         if self.designer:
-
 
             # Chatter message for designer assignment
             message = f"Attribution : le {self.designer_assign_date} - Designer : {self.designer.name}"
@@ -70,7 +67,6 @@ class ProjectProjectInherit(models.Model):
 
         if 'designer' in values and values['designer']:
             values['designer_assign_date'] = fields.Date.context_today(self)
-
 
         return super(ProjectProjectInherit, self).create(values)
 
@@ -109,6 +105,7 @@ class ProjectProjectInherit(models.Model):
         )
 
         return True
+
     bat_cancel = fields.Boolean('BAT Annulé')
     invalidation_reason = fields.Text(string="Raison de Refus BTA")
 
@@ -118,6 +115,7 @@ class ProjectProjectInherit(models.Model):
             raise UserError("Aucun designer n'est attribué à ce projet.")
         else:
             self.bat_cancel = True
+            self.state_commercial = 'design_in_progress'
         # Launch the wizard with project context
         return {
             'name': "Invalidate Designer",
@@ -127,6 +125,7 @@ class ProjectProjectInherit(models.Model):
             'target': 'new',
             'context': {'default_project_id': self.id},
         }
+
     def name_get(self):
         result = []
         for record in self:
