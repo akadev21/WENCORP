@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_majesty_commercial,access_majesty_commercial,model_majesty_commercial,,1,1,1,1
+access_majesty_project,access_majesty_project,model_majesty_project,,1,1,1,1
+access_majesty_documents,access_majesty_documents,model_majesty_documents,,1,1,1,1
+access_majesty_products,access_majesty_products,model_majesty_products,,1,1,1,1

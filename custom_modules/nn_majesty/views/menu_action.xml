@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <menuitem name="Commercial" id="menu_root_commercial" sequence="-1"/>
+    <menuitem name="Designer" id="menu_root_designer" sequence="2"/>
+
+
+</odoo>
