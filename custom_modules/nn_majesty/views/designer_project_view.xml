@@ -3,7 +3,7 @@
 
     <record id="view_majesty_designer_project_tree_new" model="ir.ui.view">
         <field name="name">majesty.project.designer.new.tree</field>
-        <field name="model">majesty.project</field>
+        <field name="model">commercial.project</field>
         <field name="arch" type="xml">
             <!-- Add fields before and after the display_name field -->
             <tree>
@@ -22,7 +22,7 @@
     <!-- Action for the menu -->
     <record id="action_majesty_project_designer_new" model="ir.actions.act_window">
         <field name="name">Projets Designer</field>
-        <field name="res_model">majesty.project</field>
+        <field name="res_model">commercial.project</field>
         <field name="view_mode">tree,kanban,form</field>
     </record>
 

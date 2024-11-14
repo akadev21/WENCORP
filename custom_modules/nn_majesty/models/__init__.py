@@ -1,4 +1,3 @@
-from . import majesty_commercial
-from . import majesty_project
-from . import majesty_documents
-from . import majesty_product
+from . import commercial_project
+from . import commercial_documents
+from . import commercial_product

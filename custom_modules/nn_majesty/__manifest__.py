@@ -16,7 +16,7 @@
     # any module necessary for this one to work correctly
     'depends': [
         'base',
-        'project',  # Base Odoo module; adjust according to your module’s dependencies
+        'project', 'sale', 'product'  # Base Odoo module; adjust according to your module’s dependencies
     ],
 
     # always loaded
@@ -25,7 +25,8 @@
         'security/ir.model.access.csv',
         'views/menu_action.xml',
         'views/commercial_project_view.xml',
-        'views/designer_project_view.xml',
+        'data/email_templates_designer.xml',
+        # 'views/designer_project_view.xml',
     ],
 
     # Technical information
