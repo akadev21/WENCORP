@@ -28,6 +28,8 @@ class ProjectProjectInherit(models.Model):
     document_ids = fields.One2many('commercial.documents', 'project_id')
     product_ids = fields.One2many('commercial.products', 'project_id')
 
+
+
     state_commercial = fields.Selection(
         [
             ('preparation', 'Préparation'),
@@ -37,17 +39,6 @@ class ProjectProjectInherit(models.Model):
         ],
         string='State',
         default='preparation',
-        tracking=True  # Enable tracking for state changes
-    )
-    state_designer = fields.Selection(
-        [
-            ('draft', 'Brouillon'),
-            ('control_in_progress', 'Contrôle en cours'),
-            ('control_validated', 'Validé'),
-            ('control_not_validated', 'Non validé')
-        ],
-        string='État',  # French translation for "State"
-        default='draft',
         tracking=True  # Enable tracking for state changes
     )
 
@@ -80,6 +71,7 @@ class ProjectProjectInherit(models.Model):
         if 'designer' in values and values['designer']:
             values['designer_assign_date'] = fields.Date.context_today(self)
 
+
         return super(ProjectProjectInherit, self).create(values)
 
     def action_send_to_designer(self):
@@ -87,29 +79,57 @@ class ProjectProjectInherit(models.Model):
         if not self.designer:
             raise UserError("Aucun designer n'est attribué à ce projet.")
 
-        # Update the state_commercial to 'design_in_progress'
-        self.state_commercial = 'design_in_progress'
-        self.designer_assign_date = fields.Date.context_today(self)
+        # Create corresponding designer.project record
+        designer_project_vals = {
+            'reference_projet': self.id,  # Link to this commercial.project record
+            'state_designer': 'draft',  # Initial state
+            'commercial': self.env.user.id,  # Current user as commercial
+        }
 
-        # Send an email notification to the designer
+        # Create the designer project record
+        designer_project = self.env['designer.project'].create(designer_project_vals)
+
+        # Update the state_commercial to 'design_in_progress'
+        self.write({
+            'state_commercial': 'design_in_progress',
+            'designer_assign_date': fields.Date.context_today(self),
+        })
+
+        # Send email notification to the designer
         template_id = self.env.ref('nn_majesty.email_template_designer_notification').id
         if template_id:
             self.env['mail.template'].browse(template_id).send_mail(self.id, force_send=True)
 
         # Log the action in the Chatter
-        self.message_post(body="L'état du projet a été changé à 'Design terminé' et un email a été envoyé au designer.")
+        self.message_post(
+            body=f"""Projet envoyé au designer:
+             - État du projet changé à 'Design en cours'
+             - Projet designer créé (ID: {designer_project.id})
+             - Email de notification envoyé au designer"""
+        )
 
         return True
-    def action_design_non_valide(self):
-        # Ensure the project is in design_completed state before invalidating
-        if self.state_commercial != 'design_completed':
-            raise UserError("Le design n'est pas encore terminé pour marquer comme non valide.")
+    bat_cancel = fields.Boolean('BAT Annulé')
+    invalidation_reason = fields.Text(string="Raison de Refus BTA")
 
-        # Set state_commercial or other relevant fields to reflect non-validation
-        self.state_designer = 'control_not_validated'
-
-        # Log the action in the Chatter
-        self.message_post(body="Le design a été marqué comme non valide.")
-
-        return True
-
+    def action_invalidate_designer(self):
+        # Ensure there is a designer assigned
+        if not self.designer:
+            raise UserError("Aucun designer n'est attribué à ce projet.")
+        else:
+            self.bat_cancel = True
+        # Launch the wizard with project context
+        return {
+            'name': "Invalidate Designer",
+            'type': 'ir.actions.act_window',
+            'res_model': 'wizard.invalidate.designer',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_project_id': self.id},
+        }
+    def name_get(self):
+        result = []
+        for record in self:
+            name = record.reference or 'New'
+            result.append((record.id, name))
+        return result

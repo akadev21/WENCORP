@@ -1,0 +1,28 @@
+<odoo>
+
+    <record id="view_invalidate_designer_wizard_form" model="ir.ui.view">
+        <field name="name">invalidate.designer.wizard.form</field>
+        <field name="model">wizard.invalidate.designer</field>
+        <field name="arch" type="xml">
+            <form string="Invalidate Designer">
+                <group>
+                    <field name="invalidate_reason" placeholder="Indiquer la raison d'invalidation" required="1"/>
+                    <field name="project_id" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="confirm_invalidate_designer" string="Confirmer" type="object" class="btn-primary"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+
+<record id="action_invalidate_designer_wizard" model="ir.actions.act_window">
+    <field name="name">Invalidate Designer</field>
+    <field name="res_model">wizard.invalidate.designer</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+</record>
+
+</odoo>

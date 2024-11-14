@@ -23,12 +23,22 @@
                             type="object"
                             class="btn-primary"
                             modifiers="{'invisible': [('state_commercial', '!=', 'design_in_progress')]}"/>
-                    <button name="action_design_non_valide"
+                    <button name="action_invalidate_designer"
                             string="Design Non Valide"
                             type="object"
                             class="btn-secondary"
                             modifiers="{'invisible': [('state_commercial', '!=', 'design_completed')]}"/>
                 </header>
+                <field name="devis_annule" invisible="1"/>
+                <div class="alert alert-danger text-center o_form_header" role="status"
+                     attrs="{'invisible': ['|', ('state', 'not in', ('draft','validation','nonvalide','cancel')), ('devis_annule', '=', False)]}">
+                    <a class="close" data-dismiss="alert" href="#" aria-label="Close">x</a>
+                    <div>
+                        <strong>Raison de Refus :
+                            <field name="motif_validation_devis"/>
+                        </strong>
+                    </div>
+                </div>
                 <sheet>
                     <group>
                         <group>
@@ -52,6 +62,7 @@
                                    modifiers="{'invisible': [('commercial_state', '=', 'design_in_progress')]}"
                             />
 
+
                         </group>
 
                         <field name="description" string="Description"/>
@@ -72,11 +83,15 @@
                         <page string="Liste des Articles">
                             <field name="product_ids">
                                 <tree editable="bottom">
+                                    <field name="project_id"/>
                                     <field name="product_id"/>
                                     <field name="description_sale"/>
                                     <field name="quantity"/>
                                     <field name="gender"/>
                                     <field name="customizable"/>
+                                    <field name="model_design" string="Design" widget="binary"
+                                           filename="model_design_filename"/>
+                                    <field name="model_design_filename" column_invisible="1"/>
                                 </tree>
                             </field>
                         </page>

@@ -1,16 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <record id="view_designer_project_form" model="ir.ui.view">
+        <field name="name">designer.project.form</field>
+        <field name="model">designer.project</field>
+        <field name="arch" type="xml">
+            <form string="Designer Project">
+                <header>
+                    <!-- Status bar showing the state -->
+                    <field name="state_designer" widget="statusbar"
+                           statusbar_visible="draft,control_in_progress,design_validated,design_not_validated"/>
 
+                    <!-- Send Design button -->
+                    <button name="action_send_design"
+                            string="Send Design"
+                            type="object"
+                            class="oe_highlight"
+                            modifiers="{'invisible': [('state_designer', '!=', 'draft')]}"
+                            confirm="Are you sure you want to send this design for review?"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="reference_projet"/>
+                            <field name="designer"/>
+                            <field name="designer_assign_date"/>
+                            <field name="commercial"/>
+                        </group>
+                        <group>
+                            <field name="reference"/>
+                            <field name="upload_bat" widget="binary" filename="bat_filename"/>
+                            <field name="bat_filename" invisible="1"/>
+                            <field name="project_document" widget="binary" filename="project_document_filename"/>
+                            <field name="project_document_filename" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Documents Projet">
+                            <field name="document_ids" create="Ajouter une ligne">
+                                <tree editable="bottom">
+                                    <field name="document_binary" widget="binary" filename="document_name"/>
+                                    <field name="document_name"/>
+
+                                </tree>
+                            </field>
+                        </page>
+                        <!-- Tab for Products -->
+                        <page string="Liste des Articles">
+                            <field name="product_ids" >
+                                <tree editable="bottom">
+                                    <field name="reference"/>
+                                    <field name="product_id"/>
+                                    <field name="description_sale"/>
+                                    <field name="quantity"/>
+                                    <field name="gender"/>
+                                    <field name="customizable"/>
+                                    <field name="model_design" string="Design" widget="binary"
+                                           filename="model_design_filename"/>
+                                    <field name="model_design_filename" column_invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <!-- Add chatter to the bottom of the form -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+
+            </form>
+        </field>
+    </record>
     <record id="view_majesty_designer_project_tree_new" model="ir.ui.view">
         <field name="name">majesty.project.designer.new.tree</field>
-        <field name="model">commercial.project</field>
+        <field name="model">designer.project</field>
         <field name="arch" type="xml">
             <!-- Add fields before and after the display_name field -->
             <tree>
+
+                <field name="reference_projet"/>
                 <field name="reference"/>
-                <field name="name"/>
-                <field name="client_id"/>
-                <field name="creation_date"/>
+                <field name="designer"/>
+                <field name="designer_assign_date"/>
+                <field name="description"/>
+                <field name="commercial"/>
                 <field name="state_designer"/>
 
                 <!-- Hide unnecessary fields -->
@@ -22,7 +95,7 @@
     <!-- Action for the menu -->
     <record id="action_majesty_project_designer_new" model="ir.actions.act_window">
         <field name="name">Projets Designer</field>
-        <field name="res_model">commercial.project</field>
+        <field name="res_model">designer.project</field>
         <field name="view_mode">tree,kanban,form</field>
     </record>
 

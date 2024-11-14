@@ -15,4 +15,30 @@
             ]]>
         </field>
     </record>
+    
+    <record id="email_template_commercial_design_review" model="mail.template">
+        <field name="name">Design Review Notification</field>
+        <field name="model_id" ref="model_designer_project"/>
+        <field name="subject">Design prêt pour validation - Projet ${object.reference or 'N/A'}</field>
+        <field name="email_from">${object.designer.email}</field>
+        <field name="email_to">${object.commercial.email}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p>Bonjour ${object.commercial.name},</p>
+                <p>Le design pour le projet ${object.reference or 'N/A'} est prêt pour votre validation.</p>
+                <p>Détails du projet:</p>
+                <ul>
+                    <li>Designer: ${object.designer.name}</li>
+                    <li>Date d'envoi: ${format_date(object.write_date)}</li>
+                    <li>Commentaires: ${object.commentaire or 'Aucun commentaire'}</li>
+                </ul>
+                <p>Veuillez examiner le BAT joint et donner votre retour.</p>
+                <br/>
+                <p>Cordialement,</p>
+                <p>L'équipe Design</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+        <field name="lang">${object.commercial.lang}</field>
+    </record>
 </odoo>

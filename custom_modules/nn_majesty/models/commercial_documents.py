@@ -12,3 +12,4 @@ class MajestyDocuments(models.Model):
 
     # Many-to-one relationship: Each document is related to one project
     project_id = fields.Many2one('commercial.project', string='Project', required=True)
+    desginer_id = fields.Many2one('designer.project', string='Project')

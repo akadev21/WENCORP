@@ -26,7 +26,8 @@
         'views/menu_action.xml',
         'views/commercial_project_view.xml',
         'data/email_templates_designer.xml',
-        # 'views/designer_project_view.xml',
+        'views/designer_project_view.xml',
+        'wizard/bta_cancel_wizard.xml',
     ],
 
     # Technical information

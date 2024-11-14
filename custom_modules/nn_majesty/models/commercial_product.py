@@ -21,8 +21,14 @@ class MajestyProducts(models.Model):
     # Quantité
     quantity = fields.Integer(string='Quantité prévue')
     project_id = fields.Many2one('commercial.project', string='Project')
+    desginer_id = fields.Many2one('designer.project', string='Project')
+    reference = fields.Many2one(
+        related='desginer_id.reference_projet',
+        string="Référence",
+        readonly=True
+    )
 
-    # Sexe (male, female, not chosen)
+    # Sexe (    male, female, not chosen)
     gender = fields.Selection([
         ('male', 'Homme'),
         ('female', 'Femme'),
@@ -34,6 +40,7 @@ class MajestyProducts(models.Model):
 
     # Description of the article
     description = fields.Text(string='Description de l\'article')
-    model = fields.Binary(attachment=True)
-    model_filename = fields.Char("Filename")
+    model_design = fields.Binary(string="Modèle design", attachment=True)
+    model_design_filename = fields.Char(string="BAT Filename")
+
     # Link to the product.template model (related field)
