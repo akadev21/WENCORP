@@ -12,13 +12,12 @@
 
                     <!-- Send Design button -->
                     <button name="action_send_design"
-                            string="Send Design"
+                            string="Envoi Design"
                             type="object"
                             class="oe_highlight"
 
-                            invisible="['!', '|', '|', ('state_designer', '=', 'draft'), ('state_designer', '=', 'add'), ('state_designer', '=', 'design_not_validated')]"
-
-                            confirm="Are you sure you want to send this design for review?"/>
+                            inisible="state_designer != 'darft' and state_designer != 'design_not_validated' "
+                            confirm="Êtes-vous sûr de vouloir envoyer ce design pour révision ?"/>
                 </header>
                 <sheet>
                     <group>
@@ -27,7 +26,7 @@
                             <field name="designer"/>
                             <field name="designer_assign_date"/>
                             <field name="commercial"/>
-<!--                            <field name="bat_cancel"/>-->
+                            <!--                            <field name="bat_cancel"/>-->
                         </group>
                         <group>
                             <field name="reference"/>
@@ -49,7 +48,7 @@
                         </page>
                         <!-- Tab for Products -->
                         <page string="Liste des Articles">
-                            <field name="product_ids" >
+                            <field name="product_ids">
                                 <tree editable="bottom">
                                     <field name="reference"/>
                                     <field name="product_id"/>

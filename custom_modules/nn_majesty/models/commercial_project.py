@@ -84,7 +84,7 @@ class ProjectProjectInherit(models.Model):
         }
 
         # Create the designer project record
-        designer_project = self.env['designer.name'].create(designer_project_vals)
+        designer_project = self.env['designer.project'].create(designer_project_vals)
 
         # Update the state_commercial to 'design_in_progress'
         self.write({

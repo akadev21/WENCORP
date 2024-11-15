@@ -22,7 +22,7 @@
                             string="Valider Design"
                             type="object"
                             class="btn-primary"
-                            invisible=" state_commercial != 'design_in_progress'"
+                            invisible=" state_commercial != 'design_completed'"
                     />
                     <button name="action_invalidate_designer"
                             string="Design Non Valide"
