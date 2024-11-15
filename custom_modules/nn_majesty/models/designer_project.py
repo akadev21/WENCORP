@@ -22,7 +22,12 @@ class DesignerProject(models.Model):
     document_ids = fields.One2many('commercial.documents', 'desginer_id')
     product_ids = fields.One2many('commercial.products', 'desginer_id')
     reference_projet = fields.Many2one('commercial.project', string='Référence Projet')
-
+    is_favorite = fields.Boolean(
+        string="Is Favorite",
+        related='reference_projet.is_favorite',
+        readonly=False,  # Set to False if you want users to edit the value
+        store=True  # Optional: Store the value in the database for faster access
+    )
     # Related fields from commercial.project
     designer = fields.Many2one(related='reference_projet.designer', string='Designer', readonly=True)
     designer_assign_date = fields.Date(related='reference_projet.designer_assign_date',

@@ -140,55 +140,109 @@
 
     </record>
     <!--    view kanban-->
-    <record id="view_majesty_commercial_project_kanban" model="ir.ui.view">
-        <field name="name">majesty.project.commercial.kanban</field>
-        <field name="model">commercial.project</field>
-        <field name="arch" type="xml">
-            <kanban default_group_by="state_commercial">
-                <field name="state_commercial"/>
-                <field name="reference"/>
-                <field name="project"/>
-                <field name="client"/>
-                <field name="designer"/>
-                <field name="creation_date"/>
-
-                <templates>
-                    <t t-name="kanban-box">
-                        <div t-attf-class="oe_kanban_card oe_kanban_global_click
-                        #{record.state_commercial.raw === 'preparation' ? 'bg-primary' : ''}
-                        #{record.state_commercial.raw === 'design_in_progress' ? 'bg-info' : ''}
-                        #{record.state_commercial.raw === 'design_completed' ? 'bg-success' : ''}
-                        #{record.state_commercial.raw === 'canceled' ? 'bg-danger' : ''}">
+ <record id="view_commercial_project_kanban" model="ir.ui.view">
+    <field name="name">commercial.project.kanban</field>
+    <field name="model">commercial.project</field>
+    <field name="arch" type="xml">
+        <kanban class="o_kanban_dashboard o_emphasize_colors"
+                default_group_by="state_commercial"
+                default_order="is_favorite desc, reference"
+                quick_create="false"
+                records_draggable="true">
+            <!-- Define fields from the model -->
+            <field name="state_commercial"/>
+            <field name="project"/>
+            <field name="reference"/>
+            <field name="client"/>
+            <field name="designer"/>
+            <field name="creation_date"/>
+            <field name="is_favorite"/>
 
 
-                            <div class="oe_kanban_details">
-                                <strong>
-                                    <field name="reference"/>  <!-- Reference Label -->
-                                </strong>
-                                <div>
-                                    <strong>Nom:</strong>
-                                    <field name="project"/>
+
+
+            <templates>
+                <!-- Menu Template -->
+                <t t-name="kanban-menu">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-6 o_kanban_card_manage_section o_kanban_manage_view">
+                                <h5 role="menuitem" class="o_kanban_card_manage_title">
+                                    <span>Voir</span>
+                                </h5>
+                                <div role="menuitem">
+                                    <a name="action_view_tasks" type="object">Documents</a>
                                 </div>
-                                <div>
-                                    <strong>Client:</strong>
-                                    <field name="client"/>
-                                </div>
+                            </div>
+                            <div class="col-6 o_kanban_card_manage_section o_kanban_manage_reporting">
+                                <h5 role="menuitem" class="o_kanban_card_manage_title">
+                                    <span>Actions</span>
+                                </h5>
 
-                                <div>
-                                    <span>Designer:</span>
-                                    <field name="designer"/>
-                                </div>
-                                <div>
-                                    <span>Crée le:</span>
-                                    <field name="creation_date"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- Card Template -->
+                <t t-name="kanban-box">
+                    <div t-attf-class="oe_kanban_global_click o_has_icon oe_kanban_content oe_kanban_card">
+                        <!-- Main Content -->
+                        <div class="o_project_kanban_main d-flex align-items-baseline gap-1">
+                            <field name="is_favorite" widget="boolean_favorite" nolabel="1" force_save="1"/>
+                            <div class="o_kanban_card_content mw-100">
+                                <div class="o_kanban_primary_left">
+                                    <div class="o_primary me-5">
+                                        <!-- Reference and Project Name -->
+                                        <span class="o_text_overflow" t-att-title="record.reference.value">
+                                            <t t-esc="record.reference.value"/>
+                                            <t t-if="record.project.value"> - <t t-esc="record.project.value"/></t>
+                                        </span>
+
+                                        <!-- Client Info -->
+                                        <span t-if="record.client.value" class="o_text_overflow text-muted">
+                                            <span class="fa fa-user me-2" aria-label="Client" title="Client"/>
+                                            <t t-esc="record.client.value"/>
+                                        </span>
+
+                                        <!-- Creation Date -->
+                                        <div t-if="record.creation_date.value" class="text-muted o_row">
+                                            <span class="fa fa-calendar me-2" title="Date"/>
+                                            <field name="creation_date"/>
+                                        </div>
+                                        
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </t>
-                </templates>
-            </kanban>
-        </field>
-    </record>
+
+                        <!-- Bottom Section -->
+                        <div class="o_kanban_record_bottom mt-3">
+                            <div class="oe_kanban_bottom_left d-flex align-items-center">
+                                <!-- Designer -->
+                                <div t-if="record.designer.value" class="me-3">
+                                    <span class="fa fa-paint-brush me-1" aria-label="Designer" title="Designer"/>
+                                    <field name="designer"/>
+                                </div>
+                                <!-- Commercial -->
+
+                            </div>
+                            <div class="oe_kanban_bottom_right">
+                                <field name="state_commercial" widget="label_selection"
+                                       options="{'classes': {
+                                           'preparation': 'default',
+                                           'design_in_progress': 'info',
+                                           'design_completed': 'success',
+                                           'bc': 'warning'}}"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </templates>
+        </kanban>
+    </field>
+</record>
+
     <record id="view_commercial_project_filter" model="ir.ui.view">
         <field name="name">mrp.commercial.project.search</field>
         <field name="model">commercial.project</field>
