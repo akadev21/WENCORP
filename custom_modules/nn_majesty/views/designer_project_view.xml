@@ -33,7 +33,7 @@
 
                             <field name="upload_bat" widget="binary" filename="bat_filename"/>
                             <field name="bat_filename" invisible="1"/>
-                             <field name="commentaire"/>
+                            <field name="comment"/>
 
                         </group>
                     </group>
@@ -41,7 +41,8 @@
                         <page string="Documents Projet">
                             <field name="document_ids" create="Ajouter une ligne">
                                 <tree editable="bottom">
-                                    <field name="document_binary" widget="binary" filename="document_name" readonly="1"/>
+                                    <field name="document_binary" widget="binary" filename="document_name"
+                                           readonly="1"/>
                                     <field name="document_name"/>
 
                                 </tree>
@@ -55,10 +56,11 @@
                                     <field name="description_sale" readonly="1"/>
                                     <field name="quantity" readonly="1"/>
                                     <field name="gender" readonly="1"/>
-                                    <field name="customizable" readonly="1" />
-                                    <field name="model_design" string="Design" widget="binary"
+                                    <field name="customizable" readonly="1"/>
+                                    <field name="model_design" string="Design" widget="image" class="oe_avatar"
                                            filename="model_design_filename"/>
                                     <field name="model_design_filename" column_invisible="1"/>
+
                                 </tree>
                             </field>
                         </page>

@@ -1,4 +1,5 @@
-from odoo import models, fields
+from odoo import models, fields, api
+import os
 
 
 class MajestyProducts(models.Model):
@@ -43,4 +44,31 @@ class MajestyProducts(models.Model):
     model_design = fields.Binary(string="Modèle design", attachment=True)
     model_design_filename = fields.Char(string="BAT Filename")
 
-    # Link to the product.template model (related field)
+
+    #
+    #
+    # model_design_image = fields.Binary(compute="_compute_model_design_image", string="Modèle design")
+    #
+    # @api.depends('model_design')
+    # def _compute_model_design_image(self):
+    #     for record in self:
+    #         record.model_design_image = record.model_design
+    #
+    #
+    # @api.depends('model_design_image')
+    # def _compute_show_model_design_image(self):
+    #     for record in self:
+    #         if record.show_model_design_image:
+    #             record.show_model_design_image = True
+    #
+    # show_model_design_image = fields.Boolean(compute="_compute_show_model_design_image", store=True)
+    #
+    # @api.onchange('model_design_filename')
+    # def _compute_show_model_design_image(self):
+    #     image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg']
+    #     for record in self:
+    #         if record.model_design_filename:
+    #             if any(record.model_design_filename.lower().endswith(ext) for ext in image_extensions):
+    #                 record.show_model_design_image = True
+    #             else:
+    #                 record.show_model_design_image = False

@@ -78,6 +78,9 @@ class DesignerProject(models.Model):
         string="bat_validated",
         readonly=True
     )
+    comment = fields.Text(
+        string="Commentaire",
+    )
 
     # Onchange for BAT Cancel
     # Compute function to set state_designer based on bat_cancel and bat_validated
@@ -90,6 +93,7 @@ class DesignerProject(models.Model):
                 record.state_designer = 'design_validated'
             else:
                 record.state_designer = 'draft'  # Default state if neither condition is met
+
     @api.model
     def create(self, vals):
         # Automatically set the commercial field to the current user on project creation
@@ -120,6 +124,7 @@ class DesignerProject(models.Model):
                 'state_commercial': 'design_completed',
                 'bat': self.upload_bat,
                 'bat_filename': self.bat_filename,
+                'comment': self.comment,
             })
 
             # Clear existing products in commercial project
