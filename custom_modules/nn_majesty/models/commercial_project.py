@@ -60,16 +60,21 @@ class ProjectProjectInherit(models.Model):
 
     @api.model
     def create(self, values):
-        sequence = self.env['ir.sequence'].next_by_code('project.reference_fix_new') or '0001'
-        reference = sequence.zfill(4)
+        # Get the sequence value (this includes the prefix and number)
+        sequence = self.env['ir.sequence'].next_by_code('project.reference_fix_new') or 'PRO-0001'
 
-        values['reference'] = reference
+        # Directly assign the sequence without zfill
+        values['reference'] = sequence
+
+        # Set creation date if not provided
         if 'creation_date' not in values:
             values['creation_date'] = fields.Date.context_today(self)
 
+        # Assign designer date if a designer is set
         if 'designer' in values and values['designer']:
             values['designer_assign_date'] = fields.Date.context_today(self)
 
+        # Create the record
         return super(ProjectProjectInherit, self).create(values)
 
     def action_send_to_designer(self):
@@ -105,6 +110,7 @@ class ProjectProjectInherit(models.Model):
                 'document_binary': documents.document_binary,
                 'document_name': documents.document_name,
             })
+
         # Update the state_commercial to 'design_in_progress'
         self.write({
             'state_commercial': 'design_in_progress',
@@ -149,74 +155,100 @@ class ProjectProjectInherit(models.Model):
             'context': {'default_project_id': self.id},
         }
 
-    sale_order_id = fields.Many2one('sale.order', string='Bon de Commande', readonly=True, tracking=True)
+    sale_order_id = fields.Many2one(
+        'sale.order',
+        string="Bon de Commande"
+    )
+    _sql_constraints = [
+        ('unique_sale_order', 'unique(sale_order_id)', 'Each project can be linked to only one sale order!'),
+        ('unique_project', 'unique(project_id)', 'Each sale order can only have one project!')
+    ]
 
     # ... (other existing fields)
-
     def action_validate_design(self):
         """
-        Create a sale order (BC) with products from the project
+        Create a sale order (BC) from the project information,
+        and update project state to 'bc'
         """
         self.ensure_one()
 
-        # Check if client exists
+        # Basic validation checks
         if not self.client:
             raise UserError("Veuillez sélectionner un client avant de créer le bon de commande.")
 
-        # Check if products exist
-        if not self.product_ids:
-            raise UserError("Aucun produit n'est disponible pour créer le bon de commande.")
+        if not self.reference:
+            raise UserError("La référence du projet est obligatoire.")
 
-        # Check if sale order already exists
         if self.sale_order_id:
             raise UserError("Un bon de commande existe déjà pour ce projet.")
 
-        # Prepare sale order lines
-        order_lines = []
-        for product in self.product_ids:
-            if not product.product_id:
-                continue
+        try:
+            order_lines = []
+            for product in self.product_ids:
+                if not product.product_id:
+                    continue
 
-            order_line_vals = {
-                'product_id': product.product_id.id,
-                'product_uom_qty': product.quantity,
-                'name': product.description or product.product_id.name,
+                order_line_vals = {
+                    'product_id': product.product_id.id,
+                    'product_uom_qty': product.quantity,
+                    'name': product.description or product.product_id.name,
+                    'gender': product.gender,
+                    'customizable': product.customizable,
+                    'model_design': product.model_design,
+                    'model_design_filename': product.model_design_filename,
+
+                }
+                order_lines.append((0, 0, order_line_vals))
+            # Prepare sale order data - note the commercial field is res.users
+            sale_order_vals = {
+                'partner_id': self.client.id,
+                'order_line': order_lines,
+                'reference': self.reference,
+                'date_order': fields.Datetime.now(),
+                'state': 'sale',
+                'company_id': self.env.company.id,
             }
-            order_lines.append((0, 0, order_line_vals))
 
-        # Create sale order
-        sale_order_vals = {
-            'partner_id': self.client.id,
-            'order_line': order_lines,
-            'origin': self.reference,  # Reference to the project
-            'project_id': self.id,  # Link back to the project
-        }
+            # Get partner's pricelist if it exists
+            if self.client.property_product_pricelist:
+                sale_order_vals['pricelist_id'] = self.client.property_product_pricelist.id
 
-        # Create the sale order
-        sale_order = self.env['sale.order'].create(sale_order_vals)
+            # Get partner's payment terms if they exist
+            if self.client.property_payment_term_id:
+                sale_order_vals['payment_term_id'] = self.client.property_payment_term_id.id
 
-        # Link the sale order to the project
-        self.write({
-            'sale_order_id': sale_order.id,
-            'state_commercial': 'bc'
-        })
+            # If commercial exists, set as salesperson
+            if self.commercial:
+                sale_order_vals['user_id'] = self.commercial.id
 
-        # Post a message in the chatter
-        self.message_post(
-            body=f"""Bon de commande créé:
-            - Numéro BC: {sale_order.name}
-            - Client: {self.client.name}
-            - Nombre de produits: {len(self.product_ids)}
-            - État changé à 'BC'""",
-            message_type='notification'
-        )
+            # Create the sale order
+            sale_order = self.env['sale.order'].sudo().create(sale_order_vals)
 
-        # Return an action to open the created sale order
-        return {
-            'name': 'Bon de Commande',
-            'type': 'ir.actions.act_window',
-            'res_model': 'sale.order',
-            'res_id': sale_order.id,
-            'view_mode': 'form',
-            'target': 'current',
-        }
+            # First, change state to 'bc'
+            self.write({
+                'state_commercial': 'bc',
+                'sale_order_id': sale_order.id
+            })
+
+            # Log the creation in the chatter
+            self.message_post(
+                body=f"""Bon de commande créé avec succès:
+                    - Numéro BC: {sale_order.name}
+                    - Client: {self.client.name}
+                    - État changé à 'BC'
+                    - Date de création: {fields.Datetime.now()}""",
+                message_type='notification'
+            )
+
+            # Return action to open the created sale order
+            return {
+                'name': 'Bon de Commande',
+                'type': 'ir.actions.act_window',
+                'res_model': 'sale.order',
+                'res_id': sale_order.id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
+
+        except Exception as e:
+            raise UserError(f"Erreur lors de la création du bon de commande: {str(e)}")

@@ -5,8 +5,30 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//sheet/group[1]/group[1]/field[@name='partner_id']" postion="before">
+            <xpath expr="//sheet/group[@name='sale_header']/group[@name='partner_details']/field[@name='partner_id']"
+                   postion="after">
                 <field name="reference"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//tree//field[@name='discount']" position="after">
+                <field name="gender"/>
+                <field name="customizable"/>
+                <field name="description"/>
+                <field name="model_design"/>
+            </xpath>
+
+        </field>
+    </record>
+    <record id="view_sale_order_line_form_bc_inherited" model="ir.ui.view">
+        <field name="name">majesty.projects.sale.order_line.form</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="sale.view_order_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree"
+                   postion="inside">
+                <field name="gender"/>
+                <field name="customizable"/>
+                <field name="description"/>
+                <field name="model_design"/>
             </xpath>
         </field>
     </record>
