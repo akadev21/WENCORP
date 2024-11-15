@@ -16,7 +16,7 @@
                             type="object"
                             class="oe_highlight"
 
-                            invisible="['!', '|', '|', ('state_designer', '=', 'draft'), ('state_designer', '=', 'add'), ('state_designer', '=', 'design_not_validated')]"
+                            invisible="['|', '|', ('state_designer', '=', 'draft'), ('state_designer', '=', 'design_not_validated')]"
 
                             confirm="Are you sure you want to send this design for review?"/>
                 </header>
@@ -118,7 +118,7 @@
 
                         <div class="oe_kanban_details">
                             <strong>
-                                <field name="reference_projet"/>  <!-- Project Reference -->
+                                <field name="reference"/>  <!-- Project Reference -->
                             </strong>
                             <div>
                                 <strong>Designer:</strong> <field name="designer" />
@@ -129,7 +129,7 @@
                             <div>
                                 <strong>Date d'Attribution:</strong> <field name="designer_assign_date"/>
                             </div>
-                          
+
                         </div>
                     </div>
                 </t>
