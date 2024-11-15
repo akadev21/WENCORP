@@ -45,10 +45,11 @@ class ProjectProjectInherit(models.Model):
         if self.designer:
 
             # Chatter message for designer assignment
-            message = f"Attribution : le {self.designer_assign_date} - Designer : {self.designer.name}"
+            message = f"Le notification envoyer au designer {self.designer.name} avec succès"
+
             return {
                 'warning': {
-                    'title': 'Designer Assigned',
+                    'title': 'Designer Assigné',
                     'message': message,
                 }
             }
@@ -83,7 +84,7 @@ class ProjectProjectInherit(models.Model):
         }
 
         # Create the designer project record
-        designer_project = self.env['designer.project'].create(designer_project_vals)
+        designer_project = self.env['designer.name'].create(designer_project_vals)
 
         # Update the state_commercial to 'design_in_progress'
         self.write({

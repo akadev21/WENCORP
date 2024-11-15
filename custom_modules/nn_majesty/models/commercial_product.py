@@ -9,19 +9,19 @@ class MajestyProducts(models.Model):
 
     # Modèles
     description_sale = fields.Text(
-        string='Description de vente',
+        string='Description ',
         related='product_id.description_sale',  # Relating to the product.template's description_sale
         store=True,  # Optionally, make it stored in the database for faster access
         readonly=True  # Typically set to readonly because it's a related field
     )
 
     # Assuming there's a relationship to the product.template model
-    product_id = fields.Many2one('product.template', string='Product Template')
+    product_id = fields.Many2one('product.template', string='Nom d\'article ')
 
     # Quantité
     quantity = fields.Integer(string='Quantité prévue')
-    project_id = fields.Many2one('commercial.project', string='Project')
-    desginer_id = fields.Many2one('designer.project', string='Project')
+    project_id = fields.Many2one('commercial.project', string='#')
+    desginer_id = fields.Many2one('designer.project')
     reference = fields.Many2one(
         related='desginer_id.reference_projet',
         string="Référence",

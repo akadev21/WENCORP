@@ -16,7 +16,7 @@
     # any module necessary for this one to work correctly
     'depends': [
         'base',
-        'project', 'sale', 'product'  # Base Odoo module; adjust according to your module’s dependencies
+        'project', 'sale_management', 'product'  # Base Odoo module; adjust according to your module’s dependencies
     ],
 
     # always loaded

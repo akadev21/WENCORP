@@ -22,12 +22,14 @@
                             string="Valider Design"
                             type="object"
                             class="btn-primary"
-                            modifiers="{'invisible': [('state_commercial', '!=', 'design_in_progress')]}"/>
+                             invisible=" state_commercial != 'design_in_progress'"
+                           />
                     <button name="action_invalidate_designer"
                             string="Design Non Valide"
                             type="object"
                             class="btn-secondary"
-                            modifiers="{'invisible': [('state_commercial', '!=', 'design_completed')]}"/>
+                             invisible=" state_commercial != 'design_completed'"
+                    />
                 </header>
                 <field name="bat_cancel" invisible="1"/>
                 <div class="alert alert-danger text-center o_form_header" role="status"
@@ -55,26 +57,28 @@
                             <field name="designer" string="Designer"/>
                             <field name="designer_assign_date" string="Date d'Attribution du Designer" readonly="1"/>
                             <field name="bat" string="BAT" widget="binary" readonly="1" filename="bat_filename"
-                                   modifiers="{'invisible': [('commercial_state', '=', 'design_in_progress')]}"
+                                    invisible=" state_commercial != 'design_in_progress'"
                             />
 
                             <field name="bat_filename" string="BAT"
-                                   modifiers="{'invisible': [('commercial_state', '=', 'design_in_progress')]}"
+                                   invisible=" state_commercial != 'design_in_progress'"
                             />
 
 
                         </group>
-
+                            <lable>Description</lable>
                         <field name="description" string="Description"/>
+                         <lable>Commentaire</lable>
                         <field name="comment" string="Commentaire"/>
                     </group>
 
                     <notebook>
-                        <page string="Documents-Projet">
+                        <page string="Documents Projet">
                             <field name="document_ids" create="Ajouter une ligne">
                                 <tree editable="bottom">
-                                    <field name="document_binary" widget="binary" filename="document_name"/>
-                                    <field name="document_name"/>
+                                  <field name="document_binary" widget="binary" filename="document_name" string="Document"/>
+                                    <field name="document_name" string="Nom du document"/>
+
 
                                 </tree>
                             </field>
@@ -124,7 +128,57 @@
         </field>
 
 
+
     </record>
+<!--    view kanban-->
+        <record id="view_majesty_commercial_project_kanban" model="ir.ui.view">
+    <field name="name">majesty.project.commercial.kanban</field>
+    <field name="model">commercial.project</field>
+    <field name="arch" type="xml">
+        <kanban default_group_by="state_commercial">
+            <field name="state_commercial"/>
+            <field name="reference"/>
+            <field name="project"/>
+            <field name="client"/>
+            <field name="designer"/>
+            <field name="creation_date"/>
+
+            <templates>
+                <t t-name="kanban-box">
+                     <div t-attf-class="oe_kanban_card oe_kanban_global_click
+                        #{record.state_commercial.raw === 'preparation' ? 'bg-primary' : ''}
+                        #{record.state_commercial.raw === 'design_in_progress' ? 'bg-info' : ''}
+                        #{record.state_commercial.raw === 'design_completed' ? 'bg-success' : ''}
+                        #{record.state_commercial.raw === 'canceled' ? 'bg-danger' : ''}">
+
+
+                        <div class="oe_kanban_details">
+                            <strong>
+                                 <field name="reference"/>  <!-- Reference Label -->
+                            </strong>
+                            <div>
+                                <strong>Nom:</strong> <field name="project" />
+                            </div>
+                            <div>
+                                <strong>Client:</strong><field name="client" />
+                            </div>
+
+                            <div>
+                                 <span>Designer: </span><field name="designer"/>
+                            </div>
+                            <div>
+                                   <span>Crée le: </span><field name="creation_date"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </templates>
+        </kanban>
+    </field>
+</record>
+
+
+
     <!-- Action for the menu -->
     <record id="action_majesty_project" model="ir.actions.act_window">
         <field name="name">Projets</field>
