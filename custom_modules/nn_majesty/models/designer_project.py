@@ -80,13 +80,16 @@ class DesignerProject(models.Model):
     )
 
     # Onchange for BAT Cancel
-    @api.depends('bat_cancel')
+    # Compute function to set state_designer based on bat_cancel and bat_validated
+    @api.depends('bat_cancel', 'bat_validated')
     def _compute_bat_cancel(self):
-        if self.bat_cancel:
-            self.state_designer = 'design_not_validated'
-        if self.bat_validated:
-            self.state_designer = 'design_validated'
-
+        for record in self:
+            if record.bat_cancel:
+                record.state_designer = 'design_not_validated'
+            elif record.bat_validated:
+                record.state_designer = 'design_validated'
+            else:
+                record.state_designer = 'draft'  # Default state if neither condition is met
     @api.model
     def create(self, vals):
         # Automatically set the commercial field to the current user on project creation
