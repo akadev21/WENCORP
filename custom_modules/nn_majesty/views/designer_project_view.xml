@@ -95,6 +95,49 @@
 
 
     </record>
+<!--    view kanban-->
+    <record id="view_designer_project_kanban" model="ir.ui.view">
+    <field name="name">designer.project.kanban</field>
+    <field name="model">designer.project</field>
+    <field name="arch" type="xml">
+        <kanban default_group_by="state_designer">
+            <field name="state_designer"/>
+            <field name="reference_projet"/>
+            <field name="designer"/>
+            <field name="commercial"/>
+            <field name="designer_assign_date"/>
+            <field name="description"/>
+
+            <templates>
+                <t t-name="kanban-box">
+                    <div t-attf-class="oe_kanban_card oe_kanban_global_click
+                        #{record.state_designer.raw === 'draft' ? 'bg-light' : ''}
+                        #{record.state_designer.raw === 'control_in_progress' ? 'bg-info' : ''}
+                        #{record.state_designer.raw === 'design_validated' ? 'bg-success' : ''}
+                        #{record.state_designer.raw === 'design_not_validated' ? 'bg-danger' : ''}">
+
+                        <div class="oe_kanban_details">
+                            <strong>
+                                <field name="reference_projet"/>  <!-- Project Reference -->
+                            </strong>
+                            <div>
+                                <strong>Designer:</strong> <field name="designer" />
+                            </div>
+                            <div>
+                                <strong>Commercial:</strong> <field name="commercial" />
+                            </div>
+                            <div>
+                                <strong>Date d'Attribution:</strong> <field name="designer_assign_date"/>
+                            </div>
+                          
+                        </div>
+                    </div>
+                </t>
+            </templates>
+        </kanban>
+    </field>
+</record>
+
     <!-- Action for the menu -->
     <record id="action_majesty_project_designer_new" model="ir.actions.act_window">
         <field name="name">Projets Designer</field>
