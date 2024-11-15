@@ -18,7 +18,7 @@
                             invisible=" state_commercial != 'preparation'"/>
 
                     <!-- Button to validate designer -->
-                    <button name="action_send_to_designer"
+                    <button name="action_validate_design"
                             string="Valider Design"
                             type="object"
                             class="btn-primary"
@@ -55,6 +55,7 @@
                         <group>
 
                             <field name="project" string="Nom du Projet"/>
+                            <field name="sale_order_id" string="BC" invisible=" state_commercial != 'bc'"/>
                             <field name="client" string="Client"/>
                             <field name="devis" string="Référence du Devis" widget="binary"
                                    filename="ref_devis_filename"/>

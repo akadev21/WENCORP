@@ -6,6 +6,7 @@ class DesignerProject(models.Model):
     _name = 'designer.project'
     _description = 'Designer Project'
     _inherit = ['mail.thread', 'mail.activity.mixin']  # Inherit mail.thread and mail.activity.mixin
+    _rec_name = 'reference'  # Add this to make reference the default display field
 
     # Selection field to manage the state
     state_designer = fields.Selection(
@@ -79,13 +80,14 @@ class DesignerProject(models.Model):
             vals['commercial'] = self.env.user.id
         return super(DesignerProject, self).create(vals)
 
+
     def action_send_design(self):
         """
         Action to send the design for review:
         - Validates BAT upload
         - Changes state to control_in_progress
         - Sends notification to commercial
-        - Syncs products with commercial project
+        - Syncs products and documents with commercial project
         """
         if not self.upload_bat:
             raise UserError("Veuillez télécharger le BAT avant d'envoyer le design.")
@@ -114,25 +116,50 @@ class DesignerProject(models.Model):
                     'project_id': self.reference_projet.id,
                     'product_id': product.product_id.id,
                     'quantity': product.quantity,
-                    # Add any other fields you need to copy
+                    'gender': product.gender,
+                    'customizable': product.customizable,
+                    'description': product.description,
+                    'model_design': product.model_design,
+                    'model_design_filename': product.model_design_filename,
                 })
 
             # Create new product records
             if product_vals:
                 self.env['commercial.products'].create(product_vals)
 
+            # Clear existing documents in commercial project
+            self.reference_projet.document_ids.unlink()
+
+            # Create new document records for commercial project
+            document_vals = []
+            for document in self.document_ids:
+                document_vals.append({
+                    'project_id': self.reference_projet.id,
+                    'document_binary': document.document_binary,
+                    'document_name': document.document_name,
+                })
+
+            # Create new document records
+            if document_vals:
+                self.env['commercial.documents'].create(document_vals)
+
         # Send email notification to commercial
         template_id = self.env.ref('nn_majesty.email_template_commercial_design_review').id
         if template_id:
             self.env['mail.template'].browse(template_id).send_mail(self.id, force_send=True)
 
+        # Get the commercial project reference
+        commercial_ref = self.reference_projet.reference if self.reference_projet else "Unknown"
+
         # Log the action in the chatter with proper tracking
         self.message_post(
             body=f"""Design envoyé pour validation:
-               - État changé à 'Control en cours'
-               - BAT envoyé au commercial {self.commercial.name}
-               - Produits synchronisés avec le projet commercial
-               - Email de notification envoyé""",
+            - État changé à 'Control en cours'
+            - BAT envoyé au commercial {self.commercial.name}
+            - Projet commercial mis à jour (Réf: {commercial_ref})
+            - {len(self.product_ids)} produits synchronisés avec le projet commercial
+            - {len(self.document_ids)} documents synchronisés avec le projet commercial
+            - Email de notification envoyé""",
             message_type='notification'
         )
 
