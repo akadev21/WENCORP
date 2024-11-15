@@ -108,6 +108,8 @@ class ProjectProjectInherit(models.Model):
         return True
 
     bat_cancel = fields.Boolean('BAT Annulé')
+    is_favorite = fields.Boolean('Ajouter aux favoris')
+
     invalidation_reason = fields.Text(string="Raison de Refus BTA")
 
     def action_invalidate_designer(self):
