@@ -150,4 +150,74 @@ class ProjectProjectInherit(models.Model):
             'context': {'default_project_id': self.id},
         }
 
+    sale_order_id = fields.Many2one('sale.order', string='Bon de Commande', readonly=True, tracking=True)
 
+    # ... (other existing fields)
+
+    def action_validate_design(self):
+        """
+        Create a sale order (BC) with products from the project
+        """
+        self.ensure_one()
+
+        # Check if client exists
+        if not self.client:
+            raise UserError("Veuillez sélectionner un client avant de créer le bon de commande.")
+
+        # Check if products exist
+        if not self.product_ids:
+            raise UserError("Aucun produit n'est disponible pour créer le bon de commande.")
+
+        # Check if sale order already exists
+        if self.sale_order_id:
+            raise UserError("Un bon de commande existe déjà pour ce projet.")
+
+        # Prepare sale order lines
+        order_lines = []
+        for product in self.product_ids:
+            if not product.product_id:
+                continue
+
+            order_line_vals = {
+                'product_id': product.product_id.id,
+                'product_uom_qty': product.quantity,
+                'name': product.description or product.product_id.name,
+            }
+            order_lines.append((0, 0, order_line_vals))
+
+        # Create sale order
+        sale_order_vals = {
+            'partner_id': self.client.id,
+            'order_line': order_lines,
+            'origin': self.reference,  # Reference to the project
+            'project_id': self.id,  # Link back to the project
+        }
+
+        # Create the sale order
+        sale_order = self.env['sale.order'].create(sale_order_vals)
+
+        # Link the sale order to the project
+        self.write({
+            'sale_order_id': sale_order.id,
+            'state_commercial': 'bc'
+        })
+
+        # Post a message in the chatter
+        self.message_post(
+            body=f"""Bon de commande créé:
+            - Numéro BC: {sale_order.name}
+            - Client: {self.client.name}
+            - Nombre de produits: {len(self.product_ids)}
+            - État changé à 'BC'""",
+            message_type='notification'
+        )
+
+        # Return an action to open the created sale order
+        return {
+            'name': 'Bon de Commande',
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order',
+            'res_id': sale_order.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }

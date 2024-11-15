@@ -1,0 +1,29 @@
+<odoo>
+
+    <record id="view_sale_order_form_bc_inherited" model="ir.ui.view">
+        <field name="name">majesty.projects.sale.order.form</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]/group[1]/field[@name='partner_id']" postion="before">
+                <field name="reference"/>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="action_commercial_sale_order" model="ir.actions.act_window">
+        <field name="name">Commande</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">tree,kanban,form</field>
+
+    </record>
+
+    <!-- Menu for Majesty Projects -->
+    <menuitem id="menu_sale_order_inhertied_commercial"
+              name="Commandes"
+              action="action_commercial_sale_order"
+              parent="menu_root_commercial"
+              sequence="10"/>
+
+</odoo>
