@@ -41,22 +41,22 @@ class ProjectProjectInherit(models.Model):
         tracking=True  # Enable tracking for state changes
     )
 
-    @api.onchange('designer')
-    def _onchange_designer(self):
-        if self.designer:
-
-            # Chatter message for designer assignment
-            message = f"Le notification envoyer au designer {self.designer.name} avec succès"
-
-            return {
-                'warning': {
-                    'title': 'Designer Assigné',
-                    'message': message,
-                }
-            }
-        else:
-            self.designer_assign_date = False
-            return {}
+    # @api.onchange('designer')
+    # def _onchange_designer(self):
+    #     if self.designer:
+    #
+    #         # Chatter message for designer assignment
+    #         message = f"Le notification envoyer au designer {self.designer.name} avec succès"
+    #
+    #         return {
+    #             'warning': {
+    #                 'title': 'Designer Assigné',
+    #                 'message': message,
+    #             }
+    #         }
+    #     else:
+    #         self.designer_assign_date = False
+    #         return {}
 
     @api.model
     def create(self, values):
@@ -79,8 +79,15 @@ class ProjectProjectInherit(models.Model):
 
     def action_send_to_designer(self):
         # Ensure there's a designer assigned before proceeding
-        if not self.designer:
+        if not self.designer :
             raise UserError("Aucun designer n'est attribué à ce projet.")
+            # Check if document_ids is empty
+        if not self.document_ids:
+            raise UserError("Aucun document n'est ajouté à ce projet.")
+
+            # Check if product_ids is empty
+        if not self.product_ids:
+            raise UserError("Aucun produit n'est ajouté à ce projet.")
 
         # Create corresponding designer.project record
         designer_project_vals = {
@@ -134,6 +141,7 @@ class ProjectProjectInherit(models.Model):
         return True
 
     bat_cancel = fields.Boolean('BAT Annulé')
+    bat_validated = fields.Boolean('BAT validée')
     is_favorite = fields.Boolean('Ajouter aux favoris')
 
     invalidation_reason = fields.Text(string="Raison de Refus BTA")
@@ -145,6 +153,8 @@ class ProjectProjectInherit(models.Model):
         else:
             self.bat_cancel = True
             self.state_commercial = 'design_in_progress'
+
+
         # Launch the wizard with project context
         return {
             'name': "Invalidate Designer",
@@ -229,7 +239,7 @@ class ProjectProjectInherit(models.Model):
                 'state_commercial': 'bc',
                 'sale_order_id': sale_order.id
             })
-
+            self.bat_validated = True
             # Log the creation in the chatter
             self.message_post(
                 body=f"""Bon de commande créé avec succès:

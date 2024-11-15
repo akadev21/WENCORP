@@ -26,21 +26,22 @@
                             <field name="designer"/>
                             <field name="designer_assign_date"/>
                             <field name="commercial"/>
-                            <!--                            <field name="bat_cancel"/>-->
+                            <field name="bat_cancel" invisible="1"/>
+                            <field name="bat_validated" invisible="1"/>
                         </group>
                         <group>
-                            <field name="reference"/>
+
                             <field name="upload_bat" widget="binary" filename="bat_filename"/>
                             <field name="bat_filename" invisible="1"/>
-                            <field name="project_document" widget="binary" filename="project_document_filename"/>
-                            <field name="project_document_filename" invisible="1"/>
+                             <field name="commentaire"/>
+
                         </group>
                     </group>
                     <notebook>
                         <page string="Documents Projet">
                             <field name="document_ids" create="Ajouter une ligne">
                                 <tree editable="bottom">
-                                    <field name="document_binary" widget="binary" filename="document_name"/>
+                                    <field name="document_binary" widget="binary" filename="document_name" readonly="1"/>
                                     <field name="document_name"/>
 
                                 </tree>
@@ -50,11 +51,11 @@
                         <page string="Liste des Articles">
                             <field name="product_ids">
                                 <tree editable="bottom">
-                                    <field name="product_id"/>
-                                    <field name="description_sale"/>
-                                    <field name="quantity"/>
-                                    <field name="gender"/>
-                                    <field name="customizable"/>
+                                    <field name="product_id" readonly="1"/>
+                                    <field name="description_sale" readonly="1"/>
+                                    <field name="quantity" readonly="1"/>
+                                    <field name="gender" readonly="1"/>
+                                    <field name="customizable" readonly="1" />
                                     <field name="model_design" string="Design" widget="binary"
                                            filename="model_design_filename"/>
                                     <field name="model_design_filename" column_invisible="1"/>
@@ -80,7 +81,7 @@
             <tree>
 
                 <field name="reference_projet"/>
-                <field name="reference"/>
+
                 <field name="designer"/>
                 <field name="designer_assign_date"/>
                 <field name="description"/>
