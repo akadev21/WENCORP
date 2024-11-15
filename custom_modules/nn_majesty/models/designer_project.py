@@ -6,6 +6,7 @@ class DesignerProject(models.Model):
     _name = 'designer.project'
     _description = 'Designer Project'
     _inherit = ['mail.thread', 'mail.activity.mixin']  # Inherit mail.thread and mail.activity.mixin
+    _rec_name = 'reference'  # Add this to make reference the default display field
 
     # Selection field to manage the state
     state_designer = fields.Selection(

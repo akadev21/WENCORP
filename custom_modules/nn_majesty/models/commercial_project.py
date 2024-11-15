@@ -6,6 +6,7 @@ from odoo.exceptions import UserError
 class ProjectProjectInherit(models.Model):
     _name = 'commercial.project'
     _inherit = ['mail.thread', 'mail.activity.mixin']  # Inherit mail.thread and mail.activity.mixin
+    _rec_name = 'reference'  # Add this to make reference the default display field
 
     project = fields.Char(tracking=True)  # Enable tracking to log changes in Chatter
     reference = fields.Char(tracking=True)
@@ -86,6 +87,25 @@ class ProjectProjectInherit(models.Model):
         # Create the designer project record
         designer_project = self.env['designer.project'].create(designer_project_vals)
 
+        # Copy product lines to designer project
+        for product in self.product_ids:
+            self.env['commercial.products'].create({
+                'desginer_id': designer_project.id,
+                'product_id': product.product_id.id,
+                'quantity': product.quantity,
+                'gender': product.gender,
+                'customizable': product.customizable,
+                'description': product.description,
+                'model_design': product.model_design,
+                'model_design_filename': product.model_design_filename,
+            })
+        for documents in self.document_ids:
+            self.env['commercial.documents'].create({
+                'desginer_id': designer_project.id,
+                'document_binary': documents.document_binary,
+                'document_name': documents.document_name,
+            })
+
         # Update the state_commercial to 'design_in_progress'
         self.write({
             'state_commercial': 'design_in_progress',
@@ -101,7 +121,8 @@ class ProjectProjectInherit(models.Model):
         self.message_post(
             body=f"""Projet envoyé au designer:
              - État du projet changé à 'Design en cours'
-             - Projet designer créé (ID: {designer_project.id})
+             - Projet designer créé (ID: {self.designer})
+             - {len(self.product_ids)} produits copiés vers le projet designer
              - Email de notification envoyé au designer"""
         )
 
@@ -129,9 +150,4 @@ class ProjectProjectInherit(models.Model):
             'context': {'default_project_id': self.id},
         }
 
-    def name_get(self):
-        result = []
-        for record in self:
-            name = record.reference or 'New'
-            result.append((record.id, name))
-        return result
+
