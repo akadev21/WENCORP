@@ -105,7 +105,7 @@
                                     <field name="customizable"/>
                                     <field name="model_design" string="Design" widget="binary"
                                            filename="model_design_filename"/>
-                                    <field name="model_design_filename" column_readonly="1" column_invisible="1"/>
+                                    <field name="model_design_filename" readonly="1" column_invisible="1"/>
                                 </tree>
                             </field>
                         </page>
