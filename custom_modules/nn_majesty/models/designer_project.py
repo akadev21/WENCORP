@@ -16,9 +16,10 @@ class DesignerProject(models.Model):
             ('design_validated', 'Design Validé'),
             ('design_not_validated', 'Non Validé')
         ],
+        compute='_compute_bat_cancel',
         string='State',
         default='draft',
-        tracking=True ) # This enables automatic tracking of state changes
+        tracking=True)  # This enables automatic tracking of state changes
 
     document_ids = fields.One2many('commercial.documents', 'desginer_id')
     product_ids = fields.One2many('commercial.products', 'desginer_id')
@@ -72,6 +73,19 @@ class DesignerProject(models.Model):
         string="bat_cancel",
         readonly=True
     )
+    bat_validated = fields.Boolean(
+        related='reference_projet.bat_validated',
+        string="bat_validated",
+        readonly=True
+    )
+
+    # Onchange for BAT Cancel
+    @api.depends('bat_cancel')
+    def _compute_bat_cancel(self):
+        if self.bat_cancel:
+            self.state_designer = 'design_not_validated'
+        if self.bat_validated:
+            self.state_designer = 'design_validated'
 
     @api.model
     def create(self, vals):
@@ -79,7 +93,6 @@ class DesignerProject(models.Model):
         if 'commercial' not in vals:
             vals['commercial'] = self.env.user.id
         return super(DesignerProject, self).create(vals)
-
 
     def action_send_design(self):
         """

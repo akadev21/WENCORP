@@ -134,6 +134,7 @@ class ProjectProjectInherit(models.Model):
         return True
 
     bat_cancel = fields.Boolean('BAT Annulé')
+    bat_validated = fields.Boolean('BAT validée')
     is_favorite = fields.Boolean('Ajouter aux favoris')
 
     invalidation_reason = fields.Text(string="Raison de Refus BTA")
@@ -145,6 +146,8 @@ class ProjectProjectInherit(models.Model):
         else:
             self.bat_cancel = True
             self.state_commercial = 'design_in_progress'
+
+
         # Launch the wizard with project context
         return {
             'name': "Invalidate Designer",
@@ -229,7 +232,7 @@ class ProjectProjectInherit(models.Model):
                 'state_commercial': 'bc',
                 'sale_order_id': sale_order.id
             })
-
+            self.bat_validated = True
             # Log the creation in the chatter
             self.message_post(
                 body=f"""Bon de commande créé avec succès:

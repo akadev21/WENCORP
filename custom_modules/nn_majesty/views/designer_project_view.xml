@@ -26,7 +26,8 @@
                             <field name="designer"/>
                             <field name="designer_assign_date"/>
                             <field name="commercial"/>
-                            <!--                            <field name="bat_cancel"/>-->
+                            <field name="bat_cancel" invisible="1"/>
+                            <field name="bat_validated" invisible="1"/>
                         </group>
                         <group>
                             <field name="reference"/>
