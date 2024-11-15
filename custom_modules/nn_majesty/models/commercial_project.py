@@ -105,7 +105,7 @@ class ProjectProjectInherit(models.Model):
                 'document_binary': documents.document_binary,
                 'document_name': documents.document_name,
             })
-git        # Update the state_commercial to 'design_in_progress'
+        # Update the state_commercial to 'design_in_progress'
         self.write({
             'state_commercial': 'design_in_progress',
             'designer_assign_date': fields.Date.context_today(self),
