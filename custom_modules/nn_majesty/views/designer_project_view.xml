@@ -15,7 +15,9 @@
                             string="Send Design"
                             type="object"
                             class="oe_highlight"
-                            modifiers="{'invisible': [('state_designer', '!=', 'draft')]}"
+
+                            invisible="['!', '|', '|', ('state_designer', '=', 'draft'), ('state_designer', '=', 'add'), ('state_designer', '=', 'design_not_validated')]"
+
                             confirm="Are you sure you want to send this design for review?"/>
                 </header>
                 <sheet>

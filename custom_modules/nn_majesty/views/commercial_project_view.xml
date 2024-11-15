@@ -57,11 +57,11 @@
                             <field name="designer" string="Designer"/>
                             <field name="designer_assign_date" string="Date d'Attribution du Designer" readonly="1"/>
                             <field name="bat" string="BAT" widget="binary" readonly="1" filename="bat_filename"
-                                    invisible=" state_commercial != 'design_in_progress'"
+                                   
                             />
 
                             <field name="bat_filename" string="BAT"
-                                   invisible=" state_commercial != 'design_in_progress'"
+
                             />
 
 
