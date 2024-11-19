@@ -2,17 +2,30 @@
 <odoo>
     <!-- Tree View -->
     <record id="view_usin_project_tree" model="ir.ui.view">
-        <field name="name">usin.project.tree</field>
-        <field name="model">usin.project</field>
-        <field name="arch" type="xml">
-            <tree string="Usin Projects">
-                <field name="reference"/>
-                <field name="date_livraison"/>
-                <field name="status_usin"/>
-                <field name="commercial"/>
-            </tree>
-        </field>
-    </record>
+            <field name="name">usin.project.tree</field>
+            <field name="model">usin.project</field>
+            <field name="arch" type="xml">
+                <tree string="Usin Projects">
+                    <field name="reference_projet"/>
+                    <field name="date_livraison"/>
+                    <field name="status_usin"/>
+                    <field name="commercial"/>
+                       <field name="line_ids"/>
+                </tree>
+            </field>
+        </record>
+<!--     <record id="view_usin_project_line_tree" model="ir.ui.view">-->
+<!--        <field name="name">usin.project.line.tree</field>-->
+<!--        <field name="model">usin.project.line</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <tree string="Project Product Lines">-->
+<!--                <field name="usin_project_id"/>-->
+<!--                <field name="product_id"/>-->
+<!--                <field name="quantity"/>-->
+<!--                <field name="status_line"/>-->
+<!--            </tree>-->
+<!--        </field>-->
+<!--    </record>-->
 
     <!-- Form View -->
     <record id="view_usin_project_form" model="ir.ui.view">
@@ -20,16 +33,47 @@
         <field name="model">usin.project</field>
         <field name="arch" type="xml">
             <form string="Usin Project">
+                <header>
+                    <button
+                            name="action_confirm"
+                            string="Confirm"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="status_usin != 'attribuee'"
+                    />
+                    <button
+                            name="action_validate"
+                            string="Validate"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="status_usin != 'confirmee'"
+                    />
+                    <field name="status_usin" widget="statusbar" options="{'clickable': True}"/>
+                    <!-- Button to send to designer -->
+
+                </header>
                 <sheet>
                     <group>
-                        <field name="reference"/>
+                        <field name="reference_projet"/>
                         <field name="date_livraison"/>
-                        <field name="status_usin" widget="statusbar" options="{'clickable': True}"/>
                         <field name="commercial"/>
                     </group>
                     <group string="Products">
-<!--                        <field name="sale_order_line_ids" widget="many2many_tags"/>-->
+                        <!--                        <field name="sale_order_line_ids" widget="many2many_tags"/>-->
                     </group>
+                    <notebook>
+                        <page string="Product Lines" name="product_lines">
+                            <field name="line_ids" nolabel="1">
+                                <tree editable="bottom">
+                                    <field name="sale_order_line_id"/>
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="description"/>
+                                    <field name="status_line"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -44,7 +88,7 @@
     </record>
 
     <!-- Menu Item -->
-  
-       <menuitem id="menu_usin_project" name="Usin Projects" parent="menu_usin_project_root" action="action_usin_project" />
+
+    <menuitem id="menu_usin_project" name="Usin Projects" parent="menu_usin_project_root" action="action_usin_project"/>
 
 </odoo>

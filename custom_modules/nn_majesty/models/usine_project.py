@@ -7,7 +7,7 @@ class UsinProject(models.Model):
     _description = 'Usin Project'
     _inherit = ['mail.thread', 'mail.activity.mixin']  # Add Chatter support
     _rec_name = 'reference'
-
+    reference_projet = fields.Many2one('commercial.project', string='Référence Projet')
     reference = fields.Char(string="Référence", required=True, tracking=True)
     date_livraison = fields.Datetime(string="Date de Livraison", required=True, tracking=True)
 
