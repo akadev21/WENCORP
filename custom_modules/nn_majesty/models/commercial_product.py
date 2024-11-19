@@ -18,7 +18,7 @@ class MajestyProducts(models.Model):
 
     # Assuming there's a relationship to the product.template model
     product_id = fields.Many2one('product.template', string='Nom d\'article ')
-
+    usine = fields.Many2one('res.users', racking=True)
     # Quantité
     quantity = fields.Integer(string='Quantité prévue')
     project_id = fields.Many2one('commercial.project', string='#')
@@ -45,7 +45,6 @@ class MajestyProducts(models.Model):
     model_design_filename = fields.Char(string="BAT Filename")
 
 
-    #
     #
     # model_design_image = fields.Binary(compute="_compute_model_design_image", string="Modèle design")
     #

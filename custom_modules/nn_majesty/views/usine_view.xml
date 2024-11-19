@@ -1,6 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- Tree View -->
+    <record id="view_usin_project_tree" model="ir.ui.view">
+        <field name="name">usin.project.tree</field>
+        <field name="model">usin.project</field>
+        <field name="arch" type="xml">
+            <tree string="Usin Projects">
+                <field name="reference"/>
+                <field name="date_livraison"/>
+                <field name="status_usin"/>
+                <field name="commercial"/>
+            </tree>
+        </field>
+    </record>
 
+    <!-- Form View -->
+    <record id="view_usin_project_form" model="ir.ui.view">
+        <field name="name">usin.project.form</field>
+        <field name="model">usin.project</field>
+        <field name="arch" type="xml">
+            <form string="Usin Project">
+                <sheet>
+                    <group>
+                        <field name="reference"/>
+                        <field name="date_livraison"/>
+                        <field name="status_usin" widget="statusbar" options="{'clickable': True}"/>
+                        <field name="commercial"/>
+                    </group>
+                    <group string="Products">
+<!--                        <field name="sale_order_line_ids" widget="many2many_tags"/>-->
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
+    <!-- Action -->
+    <record id="action_usin_project" model="ir.actions.act_window">
+        <field name="name">Usin Projects</field>
+        <field name="res_model">usin.project</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_usin_project_tree"/>
+    </record>
 
-    </odoo>
+    <!-- Menu Item -->
+  
+       <menuitem id="menu_usin_project" name="Usin Projects" parent="menu_usin_project_root" action="action_usin_project" />
+
+</odoo>

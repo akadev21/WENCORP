@@ -13,7 +13,6 @@ class SaleOrderInherit(models.Model):
     active = fields.Boolean(default=True)
 
 
-
 class SaleOrderLineInherit(models.Model):
     _inherit = 'sale.order.line'
 
@@ -26,7 +25,8 @@ class SaleOrderLineInherit(models.Model):
 
     # Customizable (boolean)
     customizable = fields.Boolean(string='Personnalisable')
-
+    # usine
+    usine = fields.Many2one('res.users', racking=True)
     # Description of the article
     description = fields.Text(string='Description de l\'article')
 
@@ -35,3 +35,16 @@ class SaleOrderLineInherit(models.Model):
 
     # Filename for the BAT (Bon à tirer)
     model_design_filename = fields.Char(string="BAT Filename")
+
+    def action_create_usin_project(self):
+        for order in self:
+            usin_project = self.env['usin.project'].create({
+                'reference': f'UP-{order.name}',
+                'date_livraison': fields.Datetime.now(),
+                'sale_order_id': order.id,
+                'line_ids': [
+                    (0, 0, {'sale_order_line_id': line.id}) for line in order.order_line
+                ],
+            })
+            order.message_post(body=f"Projet Usine créé: {usin_project.reference}")
+        return True

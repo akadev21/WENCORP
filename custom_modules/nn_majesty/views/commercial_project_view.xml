@@ -103,6 +103,7 @@
                                 <tree editable="bottom">
                                     <field name="project_id" column_invisible="1"/>
                                     <field name="product_id"/>
+                                    <field name="usine" options="{'no_create': True}"/>
                                     <field name="description_sale"/>
                                     <field name="quantity"/>
                                     <field name="gender"/>

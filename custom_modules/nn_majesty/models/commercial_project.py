@@ -205,6 +205,7 @@ class ProjectProjectInherit(models.Model):
                     'gender': product.gender,
                     'customizable': product.customizable,
                     'model_design': product.model_design,
+                    'usine':product.usine,
                     'model_design_filename': product.model_design_filename,
 
                 }
