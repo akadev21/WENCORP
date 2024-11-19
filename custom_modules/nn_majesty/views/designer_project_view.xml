@@ -19,6 +19,17 @@
                             inisible="state_designer != 'darft' and state_designer != 'design_not_validated' "
                             confirm="Êtes-vous sûr de vouloir envoyer ce design pour révision ?"/>
                 </header>
+                <field name="bat_cancel" invisible="1"/>
+
+                <div class="alert alert-danger text-center o_form_header" role="status"
+                     invisible=" bat_cancel != True">
+                    <a class="close" data-dismiss="alert" href="#" aria-label="Close">x</a>
+                    <div>
+                        <strong>Raison de Refus :
+                            <field name="invalidation_reason"/>
+                        </strong>
+                    </div>
+                </div>
                 <sheet>
                     <group>
                         <group>
