@@ -78,6 +78,11 @@ class DesignerProject(models.Model):
         string="bat_validated",
         readonly=True
     )
+    invalidation_reason = fields.Text(
+        related='reference_projet.invalidation_reason',
+        string="Raison de Refus BTA",
+        readonly=True
+    )
     comment = fields.Text(
         string="Commentaire",
     )
