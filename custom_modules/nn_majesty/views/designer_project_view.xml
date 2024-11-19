@@ -161,7 +161,7 @@
                                 <div class="oe_kanban_bottom_left d-flex align-items-center">
                                     <div t-if="record.designer.value" class="me-3">
                                         <span class="fa fa-paint-brush me-1" aria-label="Designer" title="Designer"/>
-                                        <field name="designer"/>
+
                                     </div>
                                 </div>
                                 <div class="oe_kanban_bottom_right">
@@ -180,7 +180,6 @@
             </kanban>
         </field>
     </record>
-
     <!-- Action for the menu -->
     <record id="action_majesty_project_designer_new" model="ir.actions.act_window">
         <field name="name">Projets Designer</field>
