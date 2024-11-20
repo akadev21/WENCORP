@@ -1,98 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Tree View -->
-       <record id="view_usin_project_tree" model="ir.ui.view">
-        <field name="name">usin.project.tree</field>
-        <field name="model">usin.project</field>
-        <field name="arch" type="xml">
-            <tree string="Projets Usine" decoration-info="status_usin == 'attribuee'"
-                  decoration-warning="status_usin == 'confirmee'"
-                  decoration-success="status_usin == 'validee'"
-                  decoration-danger="status_usin == 'rejet'">
-                <field name="reference"/>
-                <field name="reference_projet"/>
-                <field name="sale_order_id"/>
-                <field name="date_livraison"/>
-                <field name="status_usin"/>
-                <field name="commercial"/>
-            </tree>
-        </field>
-    </record>
-<!--     <record id="view_usin_project_line_tree" model="ir.ui.view">-->
-<!--        <field name="name">usin.project.line.tree</field>-->
-<!--        <field name="model">usin.project.line</field>-->
-<!--        <field name="arch" type="xml">-->
-<!--            <tree string="Project Product Lines">-->
-<!--                <field name="usin_project_id"/>-->
-<!--                <field name="product_id"/>-->
-<!--                <field name="quantity"/>-->
-<!--                <field name="status_line"/>-->
-<!--            </tree>-->
-<!--        </field>-->
-<!--    </record>-->
+    <data>
+        <!-- Tree View -->
+        <record id="view_usin_project_tree" model="ir.ui.view">
+            <field name="name">usin.project.tree</field>
+            <field name="model">usin.project</field>
+            <field name="arch" type="xml">
+                <tree string="Projets Usine" decoration-info="status_usin == 'attribuee'"
+                      decoration-warning="status_usin == 'confirmee'"
+                      decoration-success="status_usin == 'validee'"
+                      decoration-danger="status_usin == 'rejet'">
+                    <field name="reference"/>
+                    <field name="reference_projet"/>
+                    <field name="sale_order_id"/>
+                    <field name="date_livraison"/>
+                    <field name="status_usin"/>
+                    <field name="commercial"/>
+                </tree>
+            </field>
+        </record>
 
-    <!-- Form View -->
-    <record id="view_usin_project_form" model="ir.ui.view">
-        <field name="name">usin.project.form</field>
-        <field name="model">usin.project</field>
-        <field name="arch" type="xml">
-            <form string="Usin Project">
-                <header>
-                    <button
-                            name="action_confirm"
-                            string="Confirm"
-                            type="object"
-                            class="oe_highlight"
-                            invisible="status_usin != 'attribuee'"
-                    />
-                    <button
-                            name="action_validate"
-                            string="Validate"
-                            type="object"
-                            class="oe_highlight"
-                            invisible="status_usin != 'confirmee'"
-                    />
-                    <field name="status_usin" widget="statusbar" options="{'clickable': True}"/>
-                    <!-- Button to send to designer -->
+        <!--        &lt;!&ndash; Form View &ndash;&gt;-->
+        <!--        <record id="view_usin_project_form" model="ir.ui.view">-->
+        <!--            <field name="name">usin.project.form</field>-->
+        <!--            <field name="model">usin.project</field>-->
+        <!--            <field name="arch" type="xml">-->
+        <!--                <form string="Usin Project">-->
+        <!--                    <header>-->
+        <!--                        <button-->
+        <!--                                name="action_confirm"-->
+        <!--                                string="Confirm"-->
+        <!--                                type="object"-->
+        <!--                                class="oe_highlight"-->
+        <!--                                invisible="status_usin != 'attribuee'"-->
+        <!--                        />-->
+        <!--                        <button-->
+        <!--                                name="action_validate"-->
+        <!--                                string="Validate"-->
+        <!--                                type="object"-->
+        <!--                                class="oe_highlight"-->
+        <!--                                invisible="status_usin != 'confirmee'"-->
+        <!--                        />-->
+        <!--                        <field name="status_usin" widget="statusbar" options="{'clickable': True}"/>-->
+        <!--                    </header>-->
+        <!--                    <sheet>-->
+        <!--                        <group>-->
+        <!--                            <field name="reference_projet"/>-->
+        <!--                            <field name="date_livraison"/>-->
+        <!--                            <field name="commercial"/>-->
+        <!--                        </group>-->
+        <!--                        <group string="Products">-->
+        <!--                        </group>-->
+        <!--                        <notebook>-->
+        <!--                            <page string="Product Lines" name="product_lines">-->
+        <!--                                <field name="line_ids" nolabel="1">-->
+        <!--                                    <tree editable="bottom">-->
+        <!--                                        <field name="sale_order_line_id"/>-->
+        <!--                                        <field name="product_id"/>-->
+        <!--                                        <field name="quantity"/>-->
+        <!--                                        <field name="description"/>-->
+        <!--                                        <field name="status_line"/>-->
+        <!--                                    </tree>-->
+        <!--                                </field>-->
+        <!--                            </page>-->
+        <!--                        </notebook>-->
+        <!--                    </sheet>-->
+        <!--                </form>-->
+        <!--            </field>-->
+        <!--        </record>-->
 
-                </header>
-                <sheet>
-                    <group>
-                        <field name="reference_projet"/>
-                        <field name="date_livraison"/>
-                        <field name="commercial"/>
-                    </group>
-                    <group string="Products">
-                        <!--                        <field name="sale_order_line_ids" widget="many2many_tags"/>-->
-                    </group>
-                    <notebook>
-                        <page string="Product Lines" name="product_lines">
-                            <field name="line_ids" nolabel="1">
-                                <tree editable="bottom">
-                                    <field name="sale_order_line_id"/>
-                                    <field name="product_id"/>
-                                    <field name="quantity"/>
-                                    <field name="description"/>
-                                    <field name="status_line"/>
-                                </tree>
-                            </field>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
+        <!-- Action -->
+        <record id="action_usin_project" model="ir.actions.act_window">
+            <field name="name">Usin Projects</field>
+            <field name="res_model">usin.project</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_usin_project_tree"/>
+        </record>
 
-    <!-- Action -->
-    <record id="action_usin_project" model="ir.actions.act_window">
-        <field name="name">Usin Projects</field>
-        <field name="res_model">usin.project</field>
-        <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_usin_project_tree"/>
-    </record>
-
-    <!-- Menu Item -->
-
-    <menuitem id="menu_usin_project" name="Usin Projects" parent="menu_usin_project_root" action="action_usin_project"/>
-
+        <!-- Menu Item -->
+        <menuitem id="menu_usin_project_root" name="Usine" parent="menu_root_designer" sequence="3"/>
+    </data>
 </odoo>
