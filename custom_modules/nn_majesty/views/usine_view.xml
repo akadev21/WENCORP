@@ -1,19 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <!-- Tree View -->
-    <record id="view_usin_project_tree" model="ir.ui.view">
-            <field name="name">usin.project.tree</field>
-            <field name="model">usin.project</field>
-            <field name="arch" type="xml">
-                <tree string="Usin Projects">
-                    <field name="reference_projet"/>
-                    <field name="date_livraison"/>
-                    <field name="status_usin"/>
-                    <field name="commercial"/>
-                       <field name="line_ids"/>
-                </tree>
-            </field>
-        </record>
+       <record id="view_usin_project_tree" model="ir.ui.view">
+        <field name="name">usin.project.tree</field>
+        <field name="model">usin.project</field>
+        <field name="arch" type="xml">
+            <tree string="Projets Usine" decoration-info="status_usin == 'attribuee'"
+                  decoration-warning="status_usin == 'confirmee'"
+                  decoration-success="status_usin == 'validee'"
+                  decoration-danger="status_usin == 'rejet'">
+                <field name="reference"/>
+                <field name="reference_projet"/>
+                <field name="sale_order_id"/>
+                <field name="date_livraison"/>
+                <field name="status_usin"/>
+                <field name="commercial"/>
+            </tree>
+        </field>
+    </record>
 <!--     <record id="view_usin_project_line_tree" model="ir.ui.view">-->
 <!--        <field name="name">usin.project.line.tree</field>-->
 <!--        <field name="model">usin.project.line</field>-->

@@ -1,28 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- Email Template: Notification to Designer -->
     <record id="email_template_designer_notification" model="mail.template">
         <field name="name">Notification au Designer</field>
         <field name="model_id" ref="model_commercial_project"/>
         <field name="subject">Nouveau Projet : Prêt pour la Conception</field>
         <field name="email_from">${(user.email_formatted or '')|safe}</field>
-        <field name="email_to">${object.designer.email|safe}</field>
-        <field name="body_html">
+        <field name="email_to">${(object.designer.email or '')|safe}</field>
+        <field name="body_html" type="html">
             <![CDATA[
-            <p>Bonjour ${designer.name},</p>
+            <p>Bonjour ${object.designer.name},</p>
             <p>Le projet <b>${object.project_reference}</b> est prêt pour la conception. Veuillez consulter les détails dans Odoo.</p>
             <p>Cordialement,</p>
             <p>${user.name}</p>
             ]]>
         </field>
     </record>
-    
+
+    <!-- Email Template: Design Review Notification -->
     <record id="email_template_commercial_design_review" model="mail.template">
         <field name="name">Design Review Notification</field>
         <field name="model_id" ref="model_designer_project"/>
         <field name="subject">Design prêt pour validation - Projet ${object.reference or 'N/A'}</field>
-        <field name="email_from">${object.designer.email}</field>
-        <field name="email_to">${object.commercial.email}</field>
+        <field name="email_from">${(object.designer.email or '')|safe}</field>
+        <field name="email_to">${(object.commercial.email or '')|safe}</field>
         <field name="body_html" type="html">
+            <![CDATA[
             <div style="margin: 0px; padding: 0px;">
                 <p>Bonjour ${object.commercial.name},</p>
                 <p>Le design pour le projet ${object.reference or 'N/A'} est prêt pour votre validation.</p>
@@ -37,8 +40,31 @@
                 <p>Cordialement,</p>
                 <p>L'équipe Design</p>
             </div>
+            ]]>
         </field>
         <field name="auto_delete" eval="True"/>
         <field name="lang">${object.commercial.lang}</field>
+    </record>
+
+    <!-- Email Template: Usine Notification -->
+    <record id="email_template_usin_notification" model="mail.template">
+        <field name="name">Usine Project Notification</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="subject">Nouveau Projet Usine: ${object.name}</field>
+        <field name="email_from">${(object.user_id.email or 'noreply@example.com')|safe}</field>
+        <field name="email_to">${(object.usine.email or '')|safe}</field>
+        <field name="body_html" type="html">
+            <![CDATA[
+            <p>Bonjour,</p>
+            <p>Un nouveau projet usine a été créé avec les détails suivants:</p>
+            <ul>
+                <li><strong>Référence Projet:</strong> ${object.name}</li>
+                <li><strong>Date de Livraison:</strong> ${object.date_order}</li>
+                <li><strong>Nombre de Produits:</strong> ${len(object.order_line)}</li>
+            </ul>
+            <p>Veuillez consulter le système pour plus de détails.</p>
+            <p>Cordialement,<br/>L'équipe Commerciale</p>
+            ]]>
+        </field>
     </record>
 </odoo>

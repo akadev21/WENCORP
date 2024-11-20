@@ -38,13 +38,31 @@ class SaleOrderLineInherit(models.Model):
 
     def action_create_usin_project(self):
         for order in self:
-            usin_project = self.env['usin.project'].create({
+            if not order.order_line:
+                raise UserError(_("La commande de vente ne contient aucune ligne d'article."))
+
+            # Create the usine project
+            usin_project_vals = {
                 'reference': f'UP-{order.name}',
                 'date_livraison': fields.Datetime.now(),
                 'sale_order_id': order.id,
                 'line_ids': [
                     (0, 0, {'sale_order_line_id': line.id}) for line in order.order_line
                 ],
-            })
-            order.message_post(body=f"Projet Usine créé: {usin_project.reference}")
+            }
+            usin_project = self.env['usin.project'].create(usin_project_vals)
+
+            # Send email notification to the usine
+            template_id = self.env.ref('nn_majesty.email_template_usin_notification').id
+            if template_id:
+                self.env['mail.template'].browse(template_id).send_mail(order.id, force_send=True)
+
+            # Log action in Chatter
+            order.message_post(
+                body=_(
+                    f"Projet Usine créé: {usin_project.reference} <br>"
+                    f"- {len(order.order_line)} lignes copiées <br>"
+                    f"- Notification envoyée à l'usine."
+                )
+            )
         return True

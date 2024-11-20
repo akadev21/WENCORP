@@ -3,8 +3,7 @@
 
     <menuitem name="Commercial" id="menu_root_commercial" sequence="-1"/>
     <menuitem name="Designer" id="menu_root_designer" sequence="2"/>
-         <menuitem name="Usine" id="menu_usin_project_root" sequence="3"/>
-
+    <menuitem name="Usine" id="menu_usin_project_root" sequence="3"/>
 
 
 </odoo>
