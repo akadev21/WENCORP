@@ -77,10 +77,6 @@ class ProjectProjectInherit(models.Model):
         if 'creation_date' not in values:
             values['creation_date'] = fields.Date.context_today(self)
 
-        # Assign designer date if a designer is set
-        if 'designer' in values and values['designer']:
-            values['designer_assign_date'] = fields.Date.context_today(self)
-
         # Create the record
         return super(ProjectProjectInherit, self).create(values)
 
@@ -100,8 +96,7 @@ class ProjectProjectInherit(models.Model):
         designer_project_vals = {
             'reference_projet': self.id,  # Link to this commercial.project record
             'state_designer': 'draft',  # Initial state
-            'commercial': self.env.user.id,
-            'client': self.env.user.id,  # Current user as commercial
+            'commercial': self.env.user.id,  # Current user as commercial
         }
 
         # Create the designer project record
@@ -114,9 +109,9 @@ class ProjectProjectInherit(models.Model):
                 'product_id': product.product_id.id,
                 'quantity': product.quantity,
                 'gender': product.gender,
+
                 'quantity_delivered': product.quantity_delivered,
                 'customizable': product.customizable,
-                'usine': product.usine,
                 'description': product.description,
                 'model_design': product.model_design,
                 'model_design_filename': product.model_design_filename,
@@ -346,7 +341,7 @@ class ProjectProjectInherit(models.Model):
                     'product_id': product.product_id.id,
                     'quantity': product.quantity,
                     'gender': product.gender,
-                    'usine' : product.usine,
+                    'usine': product.usine,
                     'quantity_delivered': product.quantity_delivered,
                     'customizable': product.customizable,
                     'description': product.description,

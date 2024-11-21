@@ -63,15 +63,17 @@
                         </page>
                         <!-- Tab for Products -->
                         <page string="Liste des Articles">
-                            <field name="product_ids" >
+                            <field name="product_ids"  options="{'create': False}" >
                                 <tree editable="bottom">
                                     <field name="product_id" readonly="1"/>
                                     <field name="description_sale" readonly="1"/>
+                                     <field name="usine" readonly="1"/>
+
                                     <field name="quantity" readonly="1"/>
                                     <field name="gender" readonly="1"/>
                                     <field name="customizable" readonly="1"/>
                                     <field name="model_design" string="Design" widget="image" class="oe_avatar"
-                                            options="{'no_create': False}"
+
                                            filename="model_design_filename"/>
                                     <field name="model_design_filename" column_invisible="1"/>
 

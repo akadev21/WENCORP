@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_commercial_partner" model="ir.actions.act_window">
+        <field name="name">Clients</field> <!-- Changed name to be more specific -->
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_id" ref="base.res_partner_kanban_view"/> <!-- Changed to correct tree view ref -->
+        <field name="context">{}</field> <!-- Ensure a valid context dictionary -->
+    </record>
+
+    <menuitem id="menu_partner_inherited_commercial"
+              name="Clients"
+              action="action_commercial_partner"
+              parent="menu_root_commercial"
+              sequence="10"/>
+</odoo>

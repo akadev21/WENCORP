@@ -6,24 +6,13 @@ class UsineProject(models.Model):
     _name = 'usine.project'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = "Usine Project"
-    _rec_name = 'reference_projet'
+    _rec_name = 'reference_projet'  # Display the reference project name as the main field
 
     reference_projet = fields.Many2one(
         'commercial.project',
         string="Projet Référence",
         required=True,
         help="Référence du projet associé",
-        tracking=True
-    )
-    reference = fields.Char(
-        string="Référence",
-        required=True,
-        default=lambda self: self.env['ir.sequence'].next_by_code('usine.project'),
-        tracking=True
-    )
-    date_livraison = fields.Datetime(
-        string="Date de Livraison",
-        required=True,
         tracking=True
     )
     status_usin = fields.Selection([
@@ -54,32 +43,20 @@ class UsineProject(models.Model):
     notes = fields.Text(string="Notes Internes", help="Notes ou commentaires sur le projet usine.")
 
     @api.model
-    def create(self, vals):
-        if not vals.get('reference'):
-            vals['reference'] = self.env['ir.sequence'].next_by_code('usine.project') or 'New'
-        return super(UsineProject, self).create(vals)
+    def create(self, values):
+        # Ensure a reference project is linked
+        if 'reference_projet' not in values or not values['reference_projet']:
+            raise UserError("Une référence de projet est requise pour créer un projet usine.")
 
-    def action_confirm(self):
-        """Confirm the project and change status to 'Confirmée'."""
-        for record in self:
-            if not record.product_ids:
-                raise UserError("Aucun produit n'est associé à ce projet.")
-            record.status_usin = 'confirmee'
-            record.message_post(body="Projet confirmé")
-
-    def action_validate(self):
-        """Validate the project and change status to 'Validée'."""
-        for record in self:
-            if record.status_usin != 'confirmee':
-                raise UserError("Le projet doit d'abord être confirmé.")
-            record.status_usin = 'validee'
-            record.message_post(body="Projet validé")
+        # Call the super method to create the record
+        return super(UsineProject, self).create(values)
 
 
 class UsineProducts(models.Model):
     _name = 'usine.products'
     _description = "Produits Usine"
-
+    reference = fields.Char(string="Référence", required=True, tracking=True)
+    date_livraison = fields.Datetime(string="Date de Livraison", required=True, tracking=True)
     usine_id = fields.Many2one(
         'usine.project',
         string="Projet Usine",
@@ -112,7 +89,29 @@ class UsineProducts(models.Model):
     usine = fields.Char(string="Usine")
     description = fields.Text(string="Description")
     model_design = fields.Binary(string="Design du Modèle", attachment=True)
-    model_design_filename = fields.Char(string="Nom du Fichier Design")
+    model_design_filename = fields.Char("Nom du Fichier Design")
+
+    @api.model
+    def create(self, vals):
+        if 'reference' not in vals:
+            vals['reference'] = self.env['ir.sequence'].next_by_code('usin.project.sequence')
+        return super(UsinProject, self).create(vals)
+
+    def action_confirm(self):
+        """Confirm the project and change status to 'Confirmée'."""
+        for record in self:
+            if not record.line_ids:
+                raise UserError("Aucune ligne de produit n'est associée à ce projet.")
+            record.status_usin = 'confirmee'
+            record.message_post(body="Projet confirmé")
+
+    def action_validate(self):
+        """Validate the project and change status to 'Validée'."""
+        for record in self:
+            if record.status_usin != 'confirmee':
+                raise UserError("Le projet doit d'abord être confirmé.")
+            record.status_usin = 'validee'
+            record.message_post(body="Projet validé")
 
     _sql_constraints = [
         ('unique_product_per_usine', 'unique(usine_id, product_id)',

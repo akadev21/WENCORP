@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_commercial_product_templates" model="ir.actions.act_window">
+        <field name="name">Articles</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <!-- Corrected the ref attribute -->
+        <field name="view_id" ref="product.product_template_kanban_view"/>
+        <field name="context">{}</field>
+    </record>
+
+    <menuitem id="menu_product_template_inhertied_commercial"
+              name="Article"
+              action="action_commercial_product_templates"
+              parent="menu_root_commercial"
+              sequence="10"/>
+</odoo>

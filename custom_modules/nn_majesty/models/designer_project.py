@@ -5,7 +5,8 @@ from odoo.exceptions import UserError
 class DesignerProject(models.Model):
     _name = 'designer.project'
     _description = 'Designer Project'
-    _inherit = ['mail.thread', 'mail.activity.mixin']  # Inherit mail.thread and mail.activity.mixin
+    # Inherit mail.thread and mail.activity.mixin
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'reference'  # Add this to make reference the default display field
 
     # Selection field to manage the state
@@ -23,7 +24,8 @@ class DesignerProject(models.Model):
 
     document_ids = fields.One2many('commercial.documents', 'desginer_id')
     product_ids = fields.One2many('commercial.products', 'desginer_id')
-    reference_projet = fields.Many2one('commercial.project', string='Référence Projet')
+    reference_projet = fields.Many2one(
+        'commercial.project', string='Référence Projet')
     is_favorite = fields.Boolean(
         string="Is Favorite",
         related='reference_projet.is_favorite',
@@ -31,11 +33,13 @@ class DesignerProject(models.Model):
         store=True  # Optional: Store the value in the database for faster access
     )
     # Related fields from commercial.project
-    designer = fields.Many2one(related='reference_projet.designer', string='Designer', readonly=True)
+    designer = fields.Many2one(
+        related='reference_projet.designer', string='Designer', readonly=True)
     designer_assign_date = fields.Date(related='reference_projet.designer_assign_date',
                                        string='Date d\'Attribution du Designer', readonly=True)
 
-    description = fields.Text(related='reference_projet.description', string='Description', readonly=True)
+    description = fields.Text(
+        related='reference_projet.description', string='Description', readonly=True)
 
     # Other fields
     commentaire = fields.Text(string="Commentaire")
@@ -121,7 +125,8 @@ class DesignerProject(models.Model):
         - Syncs products and documents with commercial project
         """
         if not self.upload_bat:
-            raise UserError("Veuillez télécharger le BAT avant d'envoyer le design.")
+            raise UserError(
+                "Veuillez télécharger le BAT avant d'envoyer le design.")
 
         # Update state to control_in_progress
         self.write({
@@ -152,7 +157,7 @@ class DesignerProject(models.Model):
                     'customizable': product.customizable,
                     'description': product.description,
                     'model_design': product.model_design,
-                    'usine': product.usine,
+                    'usine': product.usine.id,
                     'model_design_filename': product.model_design_filename,
                 })
 
@@ -177,9 +182,11 @@ class DesignerProject(models.Model):
                 self.env['commercial.documents'].create(document_vals)
 
         # Send email notification to commercial
-        template_id = self.env.ref('nn_majesty.email_template_commercial_design_review').id
+        template_id = self.env.ref(
+            'nn_majesty.email_template_commercial_design_review').id
         if template_id:
-            self.env['mail.template'].browse(template_id).send_mail(self.id, force_send=True)
+            self.env['mail.template'].browse(
+                template_id).send_mail(self.id, force_send=True)
 
         # Get the commercial project reference
         commercial_ref = self.reference_projet.reference if self.reference_projet else "Unknown"
