@@ -44,7 +44,7 @@
         <field name="lang">${object.commercial.lang}</field>
     </record>
 
-    <record id="email_template_usin_notification" model="mail.template">
+    <record id="email_template_usine_notification" model="mail.template">
         <field name="name">Usine Project Notification</field>
         <field name="model_id" ref="sale.model_sale_order"/>
         <field name="subject">Nouveau Projet Usine: ${object.name}</field>

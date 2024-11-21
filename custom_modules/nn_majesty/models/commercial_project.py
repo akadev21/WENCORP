@@ -28,13 +28,20 @@ class ProjectProjectInherit(models.Model):
     project_document_filename = fields.Char("Filename")
     document_ids = fields.One2many('commercial.documents', 'project_id')
     product_ids = fields.One2many('commercial.products', 'project_id')
+    bat_cancel = fields.Boolean('BAT Annulé')
+    bat_validated = fields.Boolean('BAT validée')
+    is_favorite = fields.Boolean('Ajouter aux favoris')
+
+    invalidation_reason = fields.Text(string="Raison de Refus BTA")
 
     state_commercial = fields.Selection(
         [
             ('preparation', 'Préparation'),
             ('design_in_progress', 'Design en cours'),
+            ('design_in_review', 'Design en revue'),
             ('design_completed', 'Design terminé'),
-            ('bc', 'BC')
+            ('bc', 'BC'),
+            ('production', 'Production')
         ],
         string='State',
         default='preparation',
@@ -79,7 +86,7 @@ class ProjectProjectInherit(models.Model):
 
     def action_send_to_designer(self):
         # Ensure there's a designer assigned before proceeding
-        if not self.designer :
+        if not self.designer:
             raise UserError("Aucun designer n'est attribué à ce projet.")
             # Check if document_ids is empty
         if not self.document_ids:
@@ -93,7 +100,8 @@ class ProjectProjectInherit(models.Model):
         designer_project_vals = {
             'reference_projet': self.id,  # Link to this commercial.project record
             'state_designer': 'draft',  # Initial state
-            'commercial': self.env.user.id,  # Current user as commercial
+            'commercial': self.env.user.id,
+            'client': self.env.user.id,  # Current user as commercial
         }
 
         # Create the designer project record
@@ -106,7 +114,9 @@ class ProjectProjectInherit(models.Model):
                 'product_id': product.product_id.id,
                 'quantity': product.quantity,
                 'gender': product.gender,
+                'quantity_delivered': product.quantity_delivered,
                 'customizable': product.customizable,
+                'usine': product.usine,
                 'description': product.description,
                 'model_design': product.model_design,
                 'model_design_filename': product.model_design_filename,
@@ -140,12 +150,6 @@ class ProjectProjectInherit(models.Model):
 
         return True
 
-    bat_cancel = fields.Boolean('BAT Annulé')
-    bat_validated = fields.Boolean('BAT validée')
-    is_favorite = fields.Boolean('Ajouter aux favoris')
-
-    invalidation_reason = fields.Text(string="Raison de Refus BTA")
-
     def action_invalidate_designer(self):
         # Ensure there is a designer assigned
         if not self.designer:
@@ -153,7 +157,9 @@ class ProjectProjectInherit(models.Model):
         else:
             self.bat_cancel = True
             self.state_commercial = 'design_in_progress'
-
+        _logger.info("Attempting to update state_commercial to 'design_in_review'")
+        self.write({'state_commercial': 'design_in_review'})
+        _logger.info("State update executed")
 
         # Launch the wizard with project context
         return {
@@ -204,8 +210,9 @@ class ProjectProjectInherit(models.Model):
                     'name': product.description or product.product_id.name,
                     'gender': product.gender,
                     'customizable': product.customizable,
+                    'quantity_delivered': product.quantity_delivered,
                     'model_design': product.model_design,
-                    'usine':product.usine,
+                    'usine': product.usine,
                     'model_design_filename': product.model_design_filename,
 
                 }
@@ -263,3 +270,110 @@ class ProjectProjectInherit(models.Model):
 
         except Exception as e:
             raise UserError(f"Erreur lors de la création du bon de commande: {str(e)}")
+
+    def action_review_design(self):
+        """
+        Send an email to the designer and update the associated project state to 'design_in_review'.
+        """
+        self.ensure_one()
+
+        # Ensure a designer is assigned
+        if not self.designer:
+            raise UserError("Aucun designer n'est attribué à ce projet.")
+
+        # Ensure the designer project exists
+        designer_project = self.env['designer.project'].search([('reference_projet', '=', self.id)], limit=1)
+        if not designer_project:
+            raise UserError("Aucun projet associé trouvé pour le designer.")
+
+        try:
+            # Update the state of the designer project
+            designer_project.write({'state_designer': 'design_not_validated'})
+
+            # Update the state of the commercial project
+            self.write({'state_commercial': 'design_in_review'})
+
+            # Send email notification to the designer
+            template_id = self.env.ref('nn_majesty.email_template_design_review').id
+            if template_id:
+                self.env['mail.template'].browse(template_id).send_mail(self.id, force_send=True)
+
+            # Log the action in the Chatter
+            self.message_post(
+                body=f"""
+                Le design a été envoyé pour révision:
+                - État du projet commercial mis à jour à 'Design en revue'
+                - État du projet designer mis à jour à 'In Review'
+                - Notification par email envoyée au designer ({self.designer.name}).
+                """
+            )
+
+            return True
+
+        except Exception as e:
+            raise UserError(f"Une erreur s'est produite lors de l'envoi pour révision: {str(e)}")
+
+    def action_send_to_usine(self):
+        """
+        Send the project to the usine (factory) and update project state to 'production'.
+        """
+        self.ensure_one()
+
+        # Ensure required fields are present
+        if not self.client:
+            raise UserError("Veuillez sélectionner un client pour ce projet.")
+
+        if not self.product_ids:
+            raise UserError("Aucun produit n'est associé à ce projet.")
+
+        # Check if the current state allows sending to usine
+        if self.state_commercial != 'bc':
+            raise UserError("Le projet doit être en état 'BC' avant d'être envoyé à l'usine.")
+
+        try:
+            # Create usine project record
+            usine_project_vals = {
+                'reference_projet': self.id,  # Link to this commercial.project record
+                'state_usine': 'draft',  # Initial state in usine
+                'commercial': self.env.user.id,  # Current user as the commercial
+            }
+            usine_project = self.env['usine.project'].create(usine_project_vals)
+
+            # Copy product lines to the usine project
+            for product in self.product_ids:
+                self.env['usine.products'].create({
+                    'usine_id': usine_project.id,
+                    'product_id': product.product_id.id,
+                    'quantity': product.quantity,
+                    'gender': product.gender,
+                    'usine' : product.usine,
+                    'quantity_delivered': product.quantity_delivered,
+                    'customizable': product.customizable,
+                    'description': product.description,
+                    'model_design': product.model_design,
+                    'model_design_filename': product.model_design_filename,
+                })
+
+            # Update the project state to 'production'
+            self.write({
+                'state_commercial': 'production',
+            })
+
+            # Send email notification to the usine
+            template_id = self.env.ref('nn_majesty.email_template_usine_notification').id
+            if template_id:
+                self.env['mail.template'].browse(template_id).send_mail(self.id, force_send=True)
+
+            # Log the action in the Chatter
+            self.message_post(
+                body=f"""Projet envoyé à l'usine:
+                 - État du projet changé à 'Production'
+                 - Projet usine créé (ID: {usine_project.id})
+                 - {len(self.product_ids)} produits copiés vers le projet usine
+                 - Email de notification envoyé à l'usine."""
+            )
+
+            return True
+
+        except Exception as e:
+            raise UserError(f"Une erreur s'est produite lors de l'envoi à l'usine: {str(e)}")

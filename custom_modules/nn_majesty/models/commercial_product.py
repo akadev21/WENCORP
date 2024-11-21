@@ -38,6 +38,7 @@ class MajestyProducts(models.Model):
 
     # Customizable (boolean)
     customizable = fields.Boolean(string='personnalisable')
+    quantity_delivered = fields.Integer(string='Quantité livrée')
 
     # Description of the article
     description = fields.Text(string='Description de l\'article')

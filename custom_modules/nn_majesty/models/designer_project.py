@@ -47,6 +47,12 @@ class DesignerProject(models.Model):
         default=lambda self: self.env.user,
         readonly=True
     )
+    client = fields.Many2one(
+        'res.users',
+        string='Client',
+        default=lambda self: self.env.user,
+        readonly=True
+    )
 
     # Binary field to upload BAT
     upload_bat = fields.Binary(string="Upload BAT", attachment=True)
@@ -146,6 +152,7 @@ class DesignerProject(models.Model):
                     'customizable': product.customizable,
                     'description': product.description,
                     'model_design': product.model_design,
+                    'usine': product.usine,
                     'model_design_filename': product.model_design_filename,
                 })
 
