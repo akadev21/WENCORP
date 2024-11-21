@@ -28,6 +28,7 @@ class MajestyProducts(models.Model):
         string="Référence",
         readonly=True
     )
+    state_commercial = fields.Selection(related="project_id.state_commercial")
 
     # Sexe (    male, female, not chosen)
     gender = fields.Selection([
@@ -45,8 +46,6 @@ class MajestyProducts(models.Model):
     model_design = fields.Binary(string="Modèle design", attachment=True)
     model_design_filename = fields.Char(string="BAT Filename")
 
-
-    #
     # model_design_image = fields.Binary(compute="_compute_model_design_image", string="Modèle design")
     #
     # @api.depends('model_design')
