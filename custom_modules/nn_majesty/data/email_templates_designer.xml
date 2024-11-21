@@ -44,19 +44,17 @@
         <field name="lang">${object.commercial.lang}</field>
     </record>
 
-    <record id="email_template_usine_notification" model="mail.template">
-        <field name="name">Usine Project Notification</field>
-        <field name="model_id" ref="sale.model_sale_order"/>
-        <field name="subject">Nouveau Projet Usine: ${object.name}</field>
-        <field name="email_from">${(user.email_formatted or '')|safe}</field>
-        <field name="email_to">${(object.usine.email or '')|safe}</field>
-        <field name="body_html">
-            <![CDATA[
-            <p>Bonjour,</p>
-            <p>Un nouveau projet usine a été créé avec les détails suivants:</p>
-            <p>Veuillez consulter le système pour plus de détails.</p>
-            <p>Cordialement,<br/>L'équipe Commerciale</p>
-            ]]>
-        </field>
-    </record>
+     <record id="email_template_usine_notification" model="mail.template">
+            <field name="name">Notification à l'usine</field>
+            <field name="model_id" ref="model_commercial_project"/> <!-- Remplacez par le modèle correct -->
+            <field name="subject">Nouveau projet envoyé à l'usine</field>
+            <field name="email_to">${object.client.email}</field> <!-- Assurez-vous que l'email du client est défini -->
+            <field name="body_html">
+                <![CDATA[
+                <p>Bonjour,</p>
+                <p>Le projet <strong>${object.name}</strong> a été envoyé à l'usine.</p>
+                <p>Cordialement,</p>
+                ]]>
+            </field>
+        </record>
 </odoo>

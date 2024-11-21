@@ -2,6 +2,7 @@ from odoo import models, fields, api
 from datetime import datetime
 from odoo.exceptions import UserError
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
@@ -209,7 +210,7 @@ class ProjectProjectInherit(models.Model):
                     'customizable': product.customizable,
                     'quantity_delivered': product.quantity_delivered,
                     'model_design': product.model_design,
-                    'usine': product.usine,
+                    # 'usine': product.usine,
                     'model_design_filename': product.model_design_filename,
 
                 }
@@ -312,7 +313,7 @@ class ProjectProjectInherit(models.Model):
 
     def action_send_to_usine(self):
         """
-        Send the project to the usine (factory) and update project state to 'production'.
+        Send the project to the usine (factory) and update the project state to 'production'.
         """
         self.ensure_one()
 
@@ -327,50 +328,82 @@ class ProjectProjectInherit(models.Model):
         if self.state_commercial != 'bc':
             raise UserError("Le projet doit être en état 'BC' avant d'être envoyé à l'usine.")
 
+        # Initialize variables and catch exceptions for robust error handling
         try:
+            # Check if a project has already been sent to the usine
+            existing_usine_project = self.env['usine.project'].search([('reference_projet', '=', self.id)], limit=1)
+            if existing_usine_project:
+                raise UserError(f"Ce projet a déjà été envoyé à l'usine (ID usine: {existing_usine_project.id}).")
+
             # Create usine project record
             usine_project_vals = {
                 'reference_projet': self.id,  # Link to this commercial.project record
-                'state_usine': 'draft',  # Initial state in usine
+                'status_usin': 'attribuee',  # Initial state in usine
                 'commercial': self.env.user.id,  # Current user as the commercial
             }
             usine_project = self.env['usine.project'].create(usine_project_vals)
 
             # Copy product lines to the usine project
             for product in self.product_ids:
-                self.env['usine.products'].create({
-                    'usine_id': usine_project.id,
-                    'product_id': product.product_id.id,
-                    'quantity': product.quantity,
-                    'gender': product.gender,
-                    'usine': product.usine,
-                    'quantity_delivered': product.quantity_delivered,
-                    'customizable': product.customizable,
-                    'description': product.description,
-                    'model_design': product.model_design,
-                    'model_design_filename': product.model_design_filename,
-                })
+                # Check if the product already exists in the usine project
+                existing_usine_product = self.env['usine.products'].search([
+                    ('usine_id', '=', usine_project.id),
+                    ('product_id', '=', product.product_id.id),
+                ], limit=1)
+
+                if existing_usine_product:
+                    # Update the quantity if the product already exists
+                    existing_usine_product.quantity += product.quantity
+                else:
+                    # Create a new record for the product in the usine
+                    self.env['usine.products'].create({
+                        'usine_id': usine_project.id,
+                        'product_id': product.product_id.id,
+                        'quantity': product.quantity,
+                        'gender': product.gender,
+                        'usine': product.usine,
+                        'quantity_delivered': product.quantity_delivered,
+                        'customizable': product.customizable,
+                        'description': product.description,
+                        'model_design': product.model_design,
+                        'model_design_filename': product.model_design_filename,
+                    })
 
             # Update the project state to 'production'
-            self.write({
-                'state_commercial': 'production',
-            })
+            self.write({'state_commercial': 'production'})
 
             # Send email notification to the usine
-            template_id = self.env.ref('nn_majesty.email_template_usine_notification').id
-            if template_id:
-                self.env['mail.template'].browse(template_id).send_mail(self.id, force_send=True)
+            # Send email notification to the usine
+            try:
+                template = self.env.ref('nn_majesty.email_template_usine_notification', raise_if_not_found=False)
+                if not template:
+                    raise UserError(
+                        "Le modèle d'email pour la notification à l'usine est introuvable. Veuillez le configurer.")
+                template.send_mail(self.id, force_send=True)
+            except Exception as email_error:
+                raise UserError(f"Une erreur s'est produite lors de l'envoi de l'email : {email_error}")
 
             # Log the action in the Chatter
             self.message_post(
-                body=f"""Projet envoyé à l'usine:
-                 - État du projet changé à 'Production'
-                 - Projet usine créé (ID: {usine_project.id})
-                 - {len(self.product_ids)} produits copiés vers le projet usine
-                 - Email de notification envoyé à l'usine."""
+                body=f"""
+                    Projet envoyé à l'usine :
+                    - État du projet changé à 'Production'
+                    - Projet usine créé (ID: {usine_project.id})
+                    - {len(self.product_ids)} produits copiés vers le projet usine
+                    - Email de notification envoyé à l'usine."""
             )
 
-            return True
+            # Return a success message or action
+            return {
+                'name': 'Usine Project',
+                'type': 'ir.actions.act_window',
+                'res_model': 'usine.project',
+                'res_id': usine_project.id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
 
+        except UserError as user_error:
+            raise user_error  # Re-raise user errors for proper handling
         except Exception as e:
-            raise UserError(f"Une erreur s'est produite lors de l'envoi à l'usine: {str(e)}")
+            raise UserError(f"Une erreur inattendue s'est produite : {str(e)}")

@@ -23,7 +23,7 @@ class UsineProject(models.Model):
     )
     date_livraison = fields.Datetime(
         string="Date de Livraison",
-        required=True,
+        required=False,
         tracking=True
     )
     status_usin = fields.Selection([
@@ -102,11 +102,11 @@ class UsineProducts(models.Model):
         ('pre_expedition', 'Pré-Expédition'),
     ], string="Statut Usine", default='attribuee', tracking=True)
     quantity = fields.Float(string="Quantité", required=True)
-    gender = fields.Selection(
-        [('male', 'Homme'), ('female', 'Femme')],
-        string="Genre",
-        required=True
-    )
+    gender = fields.Selection([
+        ('male', 'Homme'),
+        ('female', 'Femme'),
+        ('unisex', 'H/F')
+    ], string='Sexe', default='unisex')
     quantity_delivered = fields.Float(string="Quantité Livrée")
     customizable = fields.Boolean(string="Personnalisable")
     usine = fields.Char(string="Usine")

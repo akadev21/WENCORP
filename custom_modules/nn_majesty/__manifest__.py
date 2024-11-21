@@ -28,7 +28,7 @@
         'data/email_templates_designer.xml',
         'views/designer_project_view.xml',
         'views/commercial_sale_order.xml',
-        #'views/usine_view.xml',
+        'views/usine_view.xml',
         'views/prodect_template_view.xml',
         'views/customer_view.xml',
         'wizard/bta_cancel_wizard.xml',

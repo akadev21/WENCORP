@@ -10,9 +10,7 @@
                       decoration-warning="status_usin == 'confirmee'"
                       decoration-success="status_usin == 'validee'"
                       decoration-danger="status_usin == 'rejet'">
-<!--                    <field name="reference"/>-->
                     <field name="reference_projet"/>
-                    <!--                    <field name="sale_order_id"/>-->
                     <field name="date_livraison"/>
                     <field name="status_usin"/>
                     <field name="commercial"/>
@@ -27,33 +25,40 @@
             <field name="arch" type="xml">
                 <form string="Usin Project">
                     <header>
-                        <field name="status_usin" widget="statusbar" options="{'clickable': True}"/>
+                        <field name="status_usin" widget="statusbar"/>
                     </header>
                     <sheet>
                         <group>
                             <field name="reference_projet"/>
                             <field name="date_livraison"/>
                             <field name="commercial"/>
-                            <field name="sale_order_id"/> <!-- Add this field -->
                         </group>
-                        <group string="Products">
-                        </group>
+
                         <notebook>
                             <page string="Product Lines" name="product_lines">
-                                <field name="line_ids" nolabel="1">
+                                <!-- If you want to show related products or lines for this project -->
+                                <field name="product_ids" options="{'create': False}" nolabel="1">
                                     <tree editable="bottom">
-                                        <field name="sale_order_line_id"/>
                                         <field name="product_id"/>
-                                        <field name="quantity"/>
-                                        <field name="description"/>
-                                        <field name="status_line"/>
+                                         <field name="customizable" readonly="1"/>
+                                        <field name="quantity" readonly="1"/>
+                                         <field name="quantity_delivered"/>
+                                         <field name="gender" readonly="1"/>
+                                        <field name="status_usin"/>
+                                         <field name="model_design" string="Design"
+                                           options="{'no_create': True}"
+                                           readonly="1"
+                                           widget="image" class="oe_avatar"
+
+                                           filename="model_design_filename"/>
+                                    <field name="model_design_filename" column_invisible="1"/>
+
                                     </tree>
                                 </field>
                             </page>
                         </notebook>
                     </sheet>
                 </form>
-
             </field>
         </record>
 
@@ -62,11 +67,10 @@
             <field name="name">Usin Projects</field>
             <field name="res_model">usine.project</field>
             <field name="view_mode">tree,form</field>
-
         </record>
 
         <!-- Menu Item -->
-        <menuitem id="menu_usin_project_root" name="Usine" parent="menu_usin_project_root-new"
+        <menuitem id="menu_usin_project_root" name="Usine" parent="menu_usine_project_root_new"
                   action="action_usin_project" sequence="3"/>
     </data>
 </odoo>
