@@ -115,11 +115,14 @@
                         <page string="Liste des Articles">
                             <field name="product_ids">
                                 <tree editable="bottom">
-                                    <field name="project_id" column_invisible="1"/>
-                                    <field name="state_commercial" />
+                                    <field name="project_id" />
+                                    <field name="state_commercial" column_invisible="1"/>
 
                                     <field name="product_id" options="{'no_create': True}"/>
-                                    <field name="usine" options="{'no_create': True}"/>
+<!--                                     column_invisible="[['state_commercial', '!=', 'bc']]"-->
+                                    <field name="usine" options="{'no_create': True}"
+
+                                    />
                                     <field name="description_sale"/>
                                     <field name="quantity"/>
                                     <field name="quantity_delivered" string='Quantité livrée' readonly="1" options="{'no_create': True}"/>
@@ -129,8 +132,9 @@
                                     <field name="model_design" string="Design"
                                            options="{'no_create': True}"
                                            readonly="1"
+                                       
                                            widget="image" class="oe_avatar"
-                                           column_invisible="[['state_commercial', '!=', 'design_in_progress']]"
+
                                            filename="model_design_filename"/>
                                     <field name="model_design_filename" column_invisible="1"/>
 
