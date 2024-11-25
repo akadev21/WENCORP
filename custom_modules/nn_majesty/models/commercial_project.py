@@ -13,12 +13,14 @@ class ProjectProjectInherit(models.Model):
 
     project = fields.Char(tracking=True)  # Enable tracking to log changes in Chatter
     reference = fields.Char(tracking=True)
-    client = fields.Many2one('res.partner', tracking=True)
+    reference_devis = fields.Char(tracking=True)
+
+    client = fields.Many2one('res.partner', tracking=True, default=lambda self: self.env.user.partner_id)
     devis = fields.Binary(string="Devis", attachment=True)
     devis_filename = fields.Char("Filename")
     devis_url = fields.Char(help="URL for the quotation document", tracking=True)
     commercial = fields.Many2one('res.user', tracking=True)
-    designer = fields.Many2one('res.users', racking=True)
+    designer = fields.Many2one('res.users', tracking=True)
     designer_assign_date = fields.Date(string='Designer Assign Date', tracking=True)
     bat = fields.Binary(string="BAT", attachment=True)
     bat_filename = fields.Char("Filename")
@@ -44,29 +46,15 @@ class ProjectProjectInherit(models.Model):
             ('design_in_review', 'Design en revue'),
             ('design_completed', 'Design terminé'),
             ('bc', 'BC'),
+            ('bc_confirme', 'BC Confirmé'),
+            ('BAT_in_progress', 'BAT Production en cours'),
+            ('BAT_completed', 'BAT Production terminé'),
             ('production', 'Production')
         ],
         string='State',
         default='preparation',
         tracking=True  # Enable tracking for state changes
     )
-
-    # @api.onchange('designer')
-    # def _onchange_designer(self):
-    #     if self.designer:
-    #
-    #         # Chatter message for designer assignment
-    #         message = f"Le notification envoyer au designer {self.designer.name} avec succès"
-    #
-    #         return {
-    #             'warning': {
-    #                 'title': 'Designer Assigné',
-    #                 'message': message,
-    #             }
-    #         }
-    #     else:
-    #         self.designer_assign_date = False
-    #         return {}
 
     @api.model
     def create(self, values):
@@ -156,7 +144,10 @@ class ProjectProjectInherit(models.Model):
             self.bat_cancel = True
             self.state_commercial = 'design_in_progress'
         _logger.info("Attempting to update state_commercial to 'design_in_review'")
-        self.write({'state_commercial': 'design_in_review'})
+        self.write({
+            'state_commercial': 'design_in_review',
+            'designer': self.designer.id,  # Retain designer explicitly
+        })
         _logger.info("State update executed")
 
         # Launch the wizard with project context
@@ -179,6 +170,7 @@ class ProjectProjectInherit(models.Model):
     ]
 
     # ... (other existing fields)
+
     def action_validate_design(self):
         """
         Create a sale order (BC) from the project information,
@@ -210,12 +202,11 @@ class ProjectProjectInherit(models.Model):
                     'customizable': product.customizable,
                     'quantity_delivered': product.quantity_delivered,
                     'model_design': product.model_design,
-                    # 'usine': product.usine,
                     'model_design_filename': product.model_design_filename,
-
                 }
                 order_lines.append((0, 0, order_line_vals))
-            # Prepare sale order data - note the commercial field is res.users
+
+            # Prepare sale order data
             sale_order_vals = {
                 'partner_id': self.client.id,
                 'order_line': order_lines,
@@ -225,27 +216,24 @@ class ProjectProjectInherit(models.Model):
                 'company_id': self.env.company.id,
             }
 
-            # Get partner's pricelist if it exists
+            # Set partner-specific fields
             if self.client.property_product_pricelist:
                 sale_order_vals['pricelist_id'] = self.client.property_product_pricelist.id
-
-            # Get partner's payment terms if they exist
             if self.client.property_payment_term_id:
                 sale_order_vals['payment_term_id'] = self.client.property_payment_term_id.id
-
-            # If commercial exists, set as salesperson
             if self.commercial:
                 sale_order_vals['user_id'] = self.commercial.id
 
             # Create the sale order
             sale_order = self.env['sale.order'].sudo().create(sale_order_vals)
 
-            # First, change state to 'bc'
+            # Update project state
             self.write({
                 'state_commercial': 'bc',
-                'sale_order_id': sale_order.id
+                'sale_order_id': sale_order.id,
+                'bat_validated': True,
             })
-            self.bat_validated = True
+
             # Log the creation in the chatter
             self.message_post(
                 body=f"""Bon de commande créé avec succès:
@@ -256,7 +244,7 @@ class ProjectProjectInherit(models.Model):
                 message_type='notification'
             )
 
-            # Return action to open the created sale order
+            # Return an action to open the created sale order
             return {
                 'name': 'Bon de Commande',
                 'type': 'ir.actions.act_window',
@@ -280,8 +268,13 @@ class ProjectProjectInherit(models.Model):
             raise UserError("Aucun designer n'est attribué à ce projet.")
 
         # Ensure the designer project exists
-        designer_project = self.env['designer.project'].search([('reference_projet', '=', self.id)], limit=1)
+        designer_project = self.env['designer.project'].search([
+            ('reference_projet', '=', self.id),
+            ('active', '=', True)  # Check only active projects
+        ], limit=1)
+
         if not designer_project:
+            _logger.error(f"No active designer.project found for reference_projet={self.id}")
             raise UserError("Aucun projet associé trouvé pour le designer.")
 
         try:
@@ -292,7 +285,7 @@ class ProjectProjectInherit(models.Model):
             self.write({'state_commercial': 'design_in_review'})
 
             # Send email notification to the designer
-            template_id = self.env.ref('nn_majesty.email_template_design_review').id
+            template_id = self.env.ref('nn_majesty.email_template_commercial_design_review').id
             if template_id:
                 self.env['mail.template'].browse(template_id).send_mail(self.id, force_send=True)
 
@@ -309,6 +302,7 @@ class ProjectProjectInherit(models.Model):
             return True
 
         except Exception as e:
+            _logger.error(f"Error during design review: {str(e)}")
             raise UserError(f"Une erreur s'est produite lors de l'envoi pour révision: {str(e)}")
 
     def action_send_to_usine(self):
@@ -407,3 +401,82 @@ class ProjectProjectInherit(models.Model):
             raise user_error  # Re-raise user errors for proper handling
         except Exception as e:
             raise UserError(f"Une erreur inattendue s'est produite : {str(e)}")
+
+    def action_send_to_designer_BAT_request(self):
+        """
+        Envoie le projet au designer et demande le BAT Production
+        si l'état est 'BC Confirmé'.
+        """
+        self.ensure_one()
+
+        # Vérifie si l'état est 'BC Confirmé'
+        if self.state_commercial != 'bc_confirme':
+            raise UserError("Le projet doit être en état 'BC Confirmé' pour demander le BAT Production.")
+
+        # Vérifie si un designer est attribué
+        if not self.designer:
+            raise UserError("Aucun designer n'est attribué à ce projet.")
+
+        # Vérifie si des documents sont associés
+        if not self.document_ids:
+            raise UserError("Aucun document n'est ajouté à ce projet.")
+
+        # Vérifie si des produits sont associés
+        if not self.product_ids:
+            raise UserError("Aucun produit n'est ajouté à ce projet.")
+
+        # Préparation des données pour le projet designer
+        designer_project_vals = {
+            'reference_projet': self.id,
+            'state_designer': 'draft',  # État initial
+            'commercial': self.env.user.id,  # Commercial actuel
+        }
+
+        # Création du projet designer
+        designer_project = self.env['designer.project'].create(designer_project_vals)
+
+        # Copier les lignes des produits
+        for product in self.product_ids:
+            self.env['commercial.products'].create({
+                'desginer_id': designer_project.id,
+                'product_id': product.product_id.id,
+                'quantity': product.quantity,
+                'gender': product.gender,
+                'quantity_delivered': product.quantity_delivered,
+                'customizable': product.customizable,
+                'description': product.description,
+                'model_design': product.model_design,
+                'model_design_filename': product.model_design_filename,
+            })
+
+        # Copier les documents
+        for document in self.document_ids:
+            self.env['commercial.documents'].create({
+                'desginer_id': designer_project.id,
+                'document_binary': document.document_binary,
+                'document_name': document.document_name,
+            })
+
+        # Mise à jour de l'état commercial
+        self.write({
+            'state_commercial': 'BAT_in_progress',
+            'designer_assign_date': fields.Date.context_today(self),
+        })
+
+        # Envoyer une notification par email au designer
+        template_id = self.env.ref('nn_majesty.email_template_designer_notification').id
+        if template_id:
+            self.env['mail.template'].browse(template_id).send_mail(self.id, force_send=True)
+
+        # Log dans le chatter
+        self.message_post(
+            body=f"""
+            Projet envoyé au designer pour BAT Production :
+            - État changé à 'BAT Production en cours'
+            - Projet designer créé (ID: {designer_project.id})
+            - {len(self.product_ids)} produits copiés
+            - Email de notification envoyé au designer ({self.designer.name}).
+            """
+        )
+
+        return True

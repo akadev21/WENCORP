@@ -1,5 +1,8 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class DesignerProject(models.Model):
@@ -15,9 +18,11 @@ class DesignerProject(models.Model):
             ('draft', 'Draft'),
             ('control_in_progress', 'Control en cours'),
             ('design_validated', 'Design Validé'),
-            ('design_not_validated', 'Non Validé')
+            ('design_not_validated', 'Non Validé'),
+            ('BAT_in_progress', 'BAT Production en cours'),
+            ('BAT_completed', 'BAT Production terminé'),
         ],
-        compute='_compute_bat_cancel',
+        # compute='_compute_bat_cancel',
         string='State',
         default='draft',
         tracking=True)  # This enables automatic tracking of state changes
@@ -39,7 +44,7 @@ class DesignerProject(models.Model):
                                        string='Date d\'Attribution du Designer', readonly=True)
 
     description = fields.Text(
-        related='reference_projet.description', string='Description', readonly=True)
+        related='reference_projet.description', string='Description')
 
     # Other fields
     commentaire = fields.Text(string="Commentaire")
@@ -52,9 +57,9 @@ class DesignerProject(models.Model):
         readonly=True
     )
     client = fields.Many2one(
-        'res.users',
+        'res.partner',
         string='Client',
-        default=lambda self: self.env.user,
+        default=lambda self: self.env.user.partner_id,
         readonly=True
     )
 
@@ -96,18 +101,30 @@ class DesignerProject(models.Model):
     comment = fields.Text(
         string="Commentaire",
     )
+    upload_bat_design = fields.Binary(string="Upload BAT", attachment=True)
 
     # Onchange for BAT Cancel
     # Compute function to set state_designer based on bat_cancel and bat_validated
-    @api.depends('bat_cancel', 'bat_validated')
+    @api.depends('bat_cancel', 'bat_validated', 'state_designer')
     def _compute_bat_cancel(self):
         for record in self:
+            # If the state is already 'control_in_progress' or further, keep that state
+            if record.state_designer in [
+                'control_in_progress',
+                'design_validated',
+                'design_not_validated',
+                'BAT_in_progress',
+                'BAT_completed'
+            ]:
+                continue
+
+            # Only change state if it's in a draft-like state
             if record.bat_cancel:
                 record.state_designer = 'design_not_validated'
             elif record.bat_validated:
                 record.state_designer = 'design_validated'
             else:
-                record.state_designer = 'draft'  # Default state if neither condition is met
+                record.state_designer = 'draft'
 
     @api.model
     def create(self, vals):
@@ -124,32 +141,38 @@ class DesignerProject(models.Model):
         - Sends notification to commercial
         - Syncs products and documents with commercial project
         """
+        # Ensure BAT is uploaded
         if not self.upload_bat:
-            raise UserError(
-                "Veuillez télécharger le BAT avant d'envoyer le design.")
+            raise UserError("Veuillez télécharger le BAT avant d'envoyer le design.")
 
-        # Update state to control_in_progress
-        self.write({
-            'state_designer': 'control_in_progress'
-        })
+        # Log current state for debugging
+        _logger.info(f"Initial state_designer: {self.state_designer}")
 
-        # Update related commercial project state if it exists
+        # Update state to 'control_in_progress'
+        try:
+            self.write({'state_designer': 'control_in_progress'})
+            print("++++++++++++++++++++++++++++", self.state_designer)
+            _logger.info(f"Updated state_designer: {self.state_designer}")
+        except Exception as e:
+            _logger.error(f"Failed to update state_designer: {str(e)}")
+            raise UserError(f"Erreur lors de la mise à jour de l'état : {str(e)}")
+
+        # If a commercial project reference exists, sync data
         if self.reference_projet:
-            # First update the basic fields
-            self.reference_projet.write({
-                'state_commercial': 'design_completed',
-                'bat': self.upload_bat,
-                'bat_filename': self.bat_filename,
-                'comment': self.comment,
-            })
+            try:
+                # Update commercial project basic fields
+                self.reference_projet.write({
+                    'state_commercial': 'design_completed',
+                    'bat': self.upload_bat,
+                    'bat_filename': self.bat_filename,
+                    'comment': self.comment,
+                })
 
-            # Clear existing products in commercial project
-            self.reference_projet.product_ids.unlink()
+                # Clear existing products in the commercial project
+                self.reference_projet.product_ids.unlink()
 
-            # Create new product records for commercial project
-            product_vals = []
-            for product in self.product_ids:
-                product_vals.append({
+                # Create new product records in the commercial project
+                product_vals = [{
                     'project_id': self.reference_projet.id,
                     'product_id': product.product_id.id,
                     'quantity': product.quantity,
@@ -157,49 +180,55 @@ class DesignerProject(models.Model):
                     'customizable': product.customizable,
                     'description': product.description,
                     'model_design': product.model_design,
+                    'model_design_2_v': product.model_design_2_v,
+                    'model_design_filename_2_v': product.model_design_filename_2_v,
+                    'upload_bat_design': product.upload_bat_design,
                     'usine': product.usine.id,
+
                     'model_design_filename': product.model_design_filename,
-                })
+                } for product in self.product_ids]
 
-            # Create new product records
-            if product_vals:
-                self.env['commercial.products'].create(product_vals)
+                if product_vals:
+                    self.env['commercial.products'].create(product_vals)
 
-            # Clear existing documents in commercial project
-            self.reference_projet.document_ids.unlink()
+                # Clear existing documents in the commercial project
+                self.reference_projet.document_ids.unlink()
 
-            # Create new document records for commercial project
-            document_vals = []
-            for document in self.document_ids:
-                document_vals.append({
+                # Create new document records in the commercial project
+                document_vals = [{
                     'project_id': self.reference_projet.id,
                     'document_binary': document.document_binary,
                     'document_name': document.document_name,
-                })
+                } for document in self.document_ids]
 
-            # Create new document records
-            if document_vals:
-                self.env['commercial.documents'].create(document_vals)
+                if document_vals:
+                    self.env['commercial.documents'].create(document_vals)
+
+            except Exception as e:
+                _logger.error(f"Failed to sync with commercial project: {str(e)}")
+                raise UserError(f"Erreur lors de la synchronisation avec le projet commercial : {str(e)}")
 
         # Send email notification to commercial
-        template_id = self.env.ref(
-            'nn_majesty.email_template_commercial_design_review').id
-        if template_id:
-            self.env['mail.template'].browse(
-                template_id).send_mail(self.id, force_send=True)
+        try:
+            template_id = self.env.ref('nn_majesty.email_template_commercial_design_review').id
+            if template_id:
+                self.env['mail.template'].browse(template_id).send_mail(self.id, force_send=True)
+                _logger.info("Email notification sent successfully.")
+        except Exception as e:
+            _logger.error(f"Failed to send email notification: {str(e)}")
+            raise UserError(f"Erreur lors de l'envoi de l'email : {str(e)}")
 
-        # Get the commercial project reference
+        # Log the action in the chatter
         commercial_ref = self.reference_projet.reference if self.reference_projet else "Unknown"
-
-        # Log the action in the chatter with proper tracking
+        print("++++++++++++++++++++++++++++", self.state_designer)
         self.message_post(
-            body=f"""Design envoyé pour validation:
-            - État changé à 'Control en cours'
-            - BAT envoyé au commercial {self.commercial.name}
-            - Projet commercial mis à jour (Réf: {commercial_ref})
-            - {len(self.product_ids)} produits synchronisés avec le projet commercial
-            - {len(self.document_ids)} documents synchronisés avec le projet commercial
-            - Email de notification envoyé""",
+            body=f"""Design envoyé pour validation :
+                - État changé à 'Control en cours'
+                - BAT envoyé au commercial {self.commercial.name}
+                - Projet commercial mis à jour (Réf: {commercial_ref})
+                - {len(self.product_ids)} produits synchronisés avec le projet commercial
+                - {len(self.document_ids)} documents synchronisés avec le projet commercial
+                - Email de notification envoyé""",
             message_type='notification'
         )
 

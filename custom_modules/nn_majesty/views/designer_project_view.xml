@@ -8,7 +8,7 @@
                 <header>
                     <!-- Status bar showing the state -->
                     <field name="state_designer" widget="statusbar"
-                           statusbar_visible="draft,control_in_progress,design_validated,design_not_validated"/>
+                          />
 
                     <!-- Send Design button -->
                     <button name="action_send_design"
@@ -33,7 +33,7 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="reference_projet"/>
+                            <field name="reference_projet" readonly="1"/>
                             <field name="designer"/>
                             <field name="designer_assign_date"/>
                             <field name="commercial"/>
@@ -67,15 +67,22 @@
                                 <tree editable="bottom">
                                     <field name="product_id" readonly="1"/>
                                     <field name="description_sale" readonly="1"/>
-                                     <field name="usine" readonly="1"/>
+                                     <field name="usine" column_invisible="1"/>
 
-                                    <field name="quantity" readonly="1"/>
+                                    <field name="quantity" column_invisible="1"/>
                                     <field name="gender" readonly="1"/>
                                     <field name="customizable" readonly="1"/>
-                                    <field name="model_design" string="Design" widget="image" class="oe_avatar"
+                                    <field name="model_design" string="Vue de face" widget="image" class="oe_avatar"
 
                                            filename="model_design_filename"/>
                                     <field name="model_design_filename" column_invisible="1"/>
+                                    <field name="model_design_2_v" string="Vue de dos" widget="image" class="oe_avatar"
+
+                                           filename="model_design_filename_2_v"/>
+                                    <field name="model_design_filename_2_v" column_invisible="1"/>
+                                     <field name="upload_bat_design" widget="binary" filename="document_name"
+                                            column_invisible="parent.state_designer != 'BAT_in_progress'"
+                                           string="BAT designer"/>
 
                                 </tree>
                             </field>
