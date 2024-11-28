@@ -8,16 +8,23 @@
                 <header>
                     <!-- Status bar showing the state -->
                     <field name="state_designer" widget="statusbar"
-                          />
+                    />
 
                     <!-- Send Design button -->
                     <button name="action_send_design"
                             string="Envoi Design"
                             type="object"
                             class="oe_highlight"
+                            invisible="state_designer not in ('darft','design_not_validated')"
 
-                            inisible="state_designer != 'darft' and state_designer != 'design_not_validated' "
                             confirm="Êtes-vous sûr de vouloir envoyer ce design pour révision ?"/>
+                    <button name="send_pdf_bat"
+                            string="Envoi BAT modéls"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state_designer not in ('BAT_completed','BAT_in_progress')"
+
+                            confirm="Êtes-vous sûr de vouloir envoyer ce BAT PDF pour révision ?"/>
                 </header>
                 <field name="bat_cancel" invisible="1"/>
 
@@ -63,11 +70,11 @@
                         </page>
                         <!-- Tab for Products -->
                         <page string="Liste des Articles">
-                            <field name="product_ids"  options="{'create': False}" >
+                            <field name="product_ids" options="{'create': False}">
                                 <tree editable="bottom">
                                     <field name="product_id" readonly="1"/>
                                     <field name="description_sale" readonly="1"/>
-                                     <field name="usine" column_invisible="1"/>
+                                    <field name="usine" column_invisible="1"/>
 
                                     <field name="quantity" column_invisible="1"/>
                                     <field name="gender" readonly="1"/>
@@ -80,10 +87,12 @@
 
                                            filename="model_design_filename_2_v"/>
                                     <field name="model_design_filename_2_v" column_invisible="1"/>
-                                     <field name="upload_bat_design" widget="binary" filename="document_name"
-                                            column_invisible="parent.state_designer != 'BAT_in_progress'"
-                                           string="BAT designer"/>
 
+
+                                    <field name="upload_bat_design" widget="binary" filename="bat_design_name"
+                                           string="PDF BAT"
+                                           column_invisible="parent.state_designer not in ('BAT_in_progress','BAT_completed')"/>
+                                    <field name="bat_design_name" column_invisible="1"/>
                                 </tree>
                             </field>
                         </page>

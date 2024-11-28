@@ -1,0 +1,40 @@
+<odoo>
+    <!-- Wizard View for client.command -->
+    <record id="view_client_command_wizard_form" model="ir.ui.view">
+        <field name="name">client.command.wizard.form</field>
+        <field name="model">client.command</field>
+        <field name="arch" type="xml">
+            <form string="Personnaliser la commande">
+                <sheet>
+                    <group>
+                        <field name="order_line_id" required="1"/>
+                    </group>
+
+                    <!-- Table for client.command.wizard.line rows -->
+                    <group>
+                        <field name="wizard_line_ids">
+                            <tree editable="bottom">
+                                <field name="size" required="1"/>
+                                <field name="number_input" required="1"/>
+                                <field name="text_field" />
+                            </tree>
+                        </field>
+                    </group>
+
+                    <footer>
+                        <button name="apply_changes" type="object" string="Appliquer" class="oe_highlight"/>
+                        <button string="Annuler" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to Open the Wizard -->
+    <record id="action_client_command_wizard" model="ir.actions.act_window">
+        <field name="name">Personnaliser la commande</field>
+        <field name="res_model">client.command</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

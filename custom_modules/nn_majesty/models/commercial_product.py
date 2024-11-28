@@ -54,3 +54,4 @@ class MajestyProducts(models.Model):
     model_design_2_v = fields.Binary(string="Modèle design", attachment=True)
     model_design_filename_2_v = fields.Char(string="BAT Filename")
     upload_bat_design = fields.Binary(string="Upload BAT", attachment=True)
+    bat_design_name = fields.Char(required=True)

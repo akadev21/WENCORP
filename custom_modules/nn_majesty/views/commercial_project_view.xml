@@ -42,13 +42,13 @@
 
                             type="object"
                             class="btn-secondary"
-                            invisible=" state_commercial != 'bc'"
+                            invisible=" state_commercial != 'BAT_completed'"
                     />
                     <button name="action_send_to_designer_BAT_request"
                             string="Demande de BAT Production"
                             type="object"
                             class="oe_highlight"
-                            invisible=" state_commercial != 'bc_confirme'"
+                            invisible=" state_commercial != 'bc'"
                     />
                 </header>
                 <field name="bat_cancel" invisible="1"/>
@@ -62,6 +62,14 @@
                     </div>
                 </div>
                 <sheet>
+                    <div class="oe_button_box" name="button_box" position="after">
+                        <button name="view_bc"
+                                type="object"
+                                string="Voir BC"
+                                class="oe_stat_button"
+                                icon="fa fa-archive"/>
+                    </div>
+
                     <div class="oe_title">
                         <h1 class="d-flex flex-row">
                             <field name="is_favorite" nolabel="1" widget="boolean_favorite" class="me-2"/>
@@ -128,38 +136,42 @@
                                     <field name="state_commercial" column_invisible="1"/>
 
                                     <field name="product_id" options="{'no_create': True}"/>
-                                    <!--                                     column_invisible="[['state_commercial', '!=', 'bc']]"-->
+
                                     <field name="usine" options="{'no_create': True}"
-                                           column_invisible="parent.state_commercial != 'BAT_in_progress'"
+                                    column_invisible="parent.state_commercial not in ('production','BAT_in_progress','BAT_completed','bc_confirme','bc')"
                                     />
                                     <field name="description_sale"/>
-                                    <field name="quantity" column_invisible="parent.state_commercial != 'bc'"/>
+                                    <field name="quantity"
+                                           column_invisible="parent.state_commercial not in ('production','BAT_in_progress','BAT_completed','bc_confirme', 'bc')"/>
                                     <field name="quantity_delivered" string='Quantité livrée' readonly="1"
                                            column_invisible="parent.state_commercial != 'production'"
                                            options="{'no_create': True}"/>
 
                                     <field name="gender"/>
                                     <field name="customizable"/>
-                                    <field name="model_design" string="Design"
+                                    <field name="model_design" string="Vue de face"
                                            options="{'no_create': True}"
                                            readonly="1"
 
                                            widget="image" class="oe_avatar"
-                                           column_invisible="parent.state_commercial != 'design_in_progress'"
+                                           column_invisible="parent.state_commercial not in ('design_completed','bc_confirme','BAT_completed','production','BAT_in_progress','bc_confirme', 'bc')"
                                            filename="model_design_filename"/>
                                     <field name="model_design_filename" column_invisible="1"/>
-                                    <field name="model_design_2_v" string="Design"
+                                    <field name="model_design_2_v" string="Vue de dos"
                                            options="{'no_create': True}"
                                            readonly="1"
 
                                            widget="image" class="oe_avatar"
-                                           column_invisible="parent.state_commercial != 'design_in_progress'"
+                                           column_invisible="parent.state_commercial not in ('design_completed','bc_confirme','BAT_completed','production','BAT_in_progress','bc_confirme', 'bc')"
                                            filename="model_design_filename_2_v"/>
                                     <field name="model_design_filename_2_v" column_invisible="1"/>
-                                     <field name="upload_bat_design" widget="binary" filename="document_name"
-                                            column_invisible="parent.state_commercial != 'BAT_completed'"
-                                           string="BAT designer"/>
 
+                                    <field name="upload_bat_design" widget="binary" filename="bat_design_name"
+                                           string="PDF"
+                                           options="{'no_create': True}"
+                                           readonly="1"
+                                           column_invisible="parent.state_commercial not in ('production','BAT_in_progress','BAT_completed','bc_confirme', 'bc')"/>
+                                    <field name="bat_design_name" column_invisible="1"/>
 
 
                                 </tree>

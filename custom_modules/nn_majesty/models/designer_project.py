@@ -102,29 +102,7 @@ class DesignerProject(models.Model):
         string="Commentaire",
     )
     upload_bat_design = fields.Binary(string="Upload BAT", attachment=True)
-
-    # Onchange for BAT Cancel
-    # Compute function to set state_designer based on bat_cancel and bat_validated
-    @api.depends('bat_cancel', 'bat_validated', 'state_designer')
-    def _compute_bat_cancel(self):
-        for record in self:
-            # If the state is already 'control_in_progress' or further, keep that state
-            if record.state_designer in [
-                'control_in_progress',
-                'design_validated',
-                'design_not_validated',
-                'BAT_in_progress',
-                'BAT_completed'
-            ]:
-                continue
-
-            # Only change state if it's in a draft-like state
-            if record.bat_cancel:
-                record.state_designer = 'design_not_validated'
-            elif record.bat_validated:
-                record.state_designer = 'design_validated'
-            else:
-                record.state_designer = 'draft'
+    bat_design_name = fields.Char(required=True)
 
     @api.model
     def create(self, vals):
@@ -134,13 +112,7 @@ class DesignerProject(models.Model):
         return super(DesignerProject, self).create(vals)
 
     def action_send_design(self):
-        """
-        Action to send the design for review:
-        - Validates BAT upload
-        - Changes state to control_in_progress
-        - Sends notification to commercial
-        - Syncs products and documents with commercial project
-        """
+
         # Ensure BAT is uploaded
         if not self.upload_bat:
             raise UserError("Veuillez télécharger le BAT avant d'envoyer le design.")
@@ -231,5 +203,55 @@ class DesignerProject(models.Model):
                 - Email de notification envoyé""",
             message_type='notification'
         )
+
+        return True
+
+    def send_pdf_bat(self):
+        for record in self:
+            try:
+                record.write({'state_designer': 'BAT_completed'})
+                _logger.info(f"Updated state_designer to 'BAT_completed' for record ID: {record.id}")
+            except Exception as e:
+                _logger.error(f"Failed to update state_designer: {str(e)}")
+                raise UserError(f"Erreur lors de la mise à jour de l'état : {str(e)}")
+
+            # Ensure that reference_projet is properly set on the commercial project
+            commercial_project = self.env['commercial.project'].search([
+                ('reference_projet', '=', record.id)
+            ], limit=1)
+
+            if commercial_project:
+                commercial_project.write({'state_commercial': 'BAT_completed'})
+                _logger.info(
+                    f"Updated state_commercial to 'BAT_completed' for commercial project ID: {commercial_project.id}")
+            else:
+                _logger.error(f"No commercial project found for designer project ID: {record.id}")
+                raise UserError("No commercial project found linked to this designer project.")
+
+            # Send email notification to the commercial
+            try:
+                template_id = self.env.ref('nn_majesty.email_template_commercial_design_review_bat_pfd',
+                                           raise_if_not_found=False)
+                if not template_id:
+                    _logger.error(
+                        "Email template not found: 'nn_majesty.email_template_commercial_design_review_bat_pfd'.")
+                    raise UserError("Le modèle d'email est introuvable. Veuillez vérifier sa configuration.")
+
+                # Send the email
+                template_id.send_mail(record.id, force_send=True)
+                _logger.info(f"Email notification sent successfully for record ID: {record.id}")
+            except Exception as e:
+                _logger.error(f"Failed to send email notification: {str(e)}")
+                raise UserError(f"Erreur lors de l'envoi de l'email : {str(e)}")
+
+            # Log the action in the chatter
+            commercial_ref = record.reference_projet.reference if record.reference_projet else "Unknown"
+            record.message_post(
+                body=f"""Design BAT PDF envoyé pour validation :
+                    - État changé à 'BAT Production terminé'
+                    - BAT Design validé pour le projet (Réf: {commercial_ref})
+                    - Email de notification envoyé à {record.commercial.name if record.commercial else "commercial inconnu"}""",
+                message_type='notification'
+            )
 
         return True

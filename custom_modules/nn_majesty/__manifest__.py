@@ -32,6 +32,7 @@
         'views/prodect_template_view.xml',
         'views/customer_view.xml',
         'wizard/bta_cancel_wizard.xml',
+        'wizard/client_command_wizard.xml',
     ],
 
     # Technical information

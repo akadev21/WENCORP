@@ -4,18 +4,51 @@
         <field name="name">majesty.projects.sale.order.form</field>
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
-        <field name="arch" type="xml">
 
-            <xpath expr="//sheet/group[@name='sale_header']/group[@name='partner_details']/field[@name='partner_id']"
-                   postion="after">
-                <field name="reference"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                        name="action_confirm_bc"
+                        type="object"
+                        string="Confirm BC"
+                        class="btn-primary"
+
+                />
+            </xpath>
+
+            <xpath expr="//group/field[@name='partner_id']" position="after">
+                <field name="reference" readonly="1"/>
+                <field name="bat" string="BAT" widget="binary" readonly="1" filename="bat_filename"
+
+                />
+                <field name="bat_filename" invisible="1"
+
+                />
             </xpath>
             <xpath expr="//field[@name='order_line']//tree//field[@name='discount']" position="after">
+
                 <field name="gender"/>
-                <field name="usine"/>
+                <field name="usine" column_invisible="1"/>
                 <field name="customizable"/>
-                <field name="description"/>
-                <field name="model_design"/>
+                <field name="quantity" column_invisible="1"/>
+                <field name="quantity_delivered" column_invisible="1" />
+                <field name="description" column_invisible="1"/>
+                <field name="model_design" string="Vue de face" widget="image" class="oe_avatar"
+
+                       filename="model_design_filename"/>
+                <field name="model_design_filename" column_invisible="1"/>
+                <field name="model_design_2_v" string="Vue de dos" widget="image" class="oe_avatar"
+
+                       filename="model_design_filename_2_v"/>
+                <field name="model_design_filename_2_v" column_invisible="1"/>
+                <field name="upload_bat_design" widget="binary" filename="document_name"
+                       column_invisible="1"
+                       string="BAT designer"/>
+                <button name="action_client_command_wizard"
+                        type="object"
+                        string="Personnaliser"
+                        class="oe_highlight"
+                        invisible="customizable == False"/>
             </xpath>
 
         </field>
@@ -28,7 +61,7 @@
 
             <xpath expr="//tree"
                    postion="inside">
-                <field name="usine"/>
+                <field name="usine" column_invisible="1"/>
                 <field name="gender"/>
                 <field name="customizable"/>
                 <field name="description"/>

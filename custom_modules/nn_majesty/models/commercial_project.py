@@ -59,7 +59,7 @@ class ProjectProjectInherit(models.Model):
     @api.model
     def create(self, values):
         # Get the sequence value (this includes the prefix and number)
-        sequence = self.env['ir.sequence'].next_by_code('project.reference_fix_new') or 'PRO-0001'
+        sequence = self.env['ir.sequence'].next_by_code('project.reference_fix_new')
 
         # Directly assign the sequence without zfill
         values['reference'] = sequence
@@ -88,6 +88,7 @@ class ProjectProjectInherit(models.Model):
             'reference_projet': self.id,  # Link to this commercial.project record
             'state_designer': 'draft',  # Initial state
             'commercial': self.env.user.id,  # Current user as commercial
+            'client': self.client.id,
         }
 
         # Create the designer project record
@@ -137,20 +138,14 @@ class ProjectProjectInherit(models.Model):
         return True
 
     def action_invalidate_designer(self):
-        # Ensure there is a designer assigned
-        if not self.designer:
-            raise UserError("Aucun designer n'est attribué à ce projet.")
-        else:
-            self.bat_cancel = True
-            self.state_commercial = 'design_in_progress'
-        _logger.info("Attempting to update state_commercial to 'design_in_review'")
-        self.write({
-            'state_commercial': 'design_in_review',
-            'designer': self.designer.id,  # Retain designer explicitly
-        })
-        _logger.info("State update executed")
+        self.bat_cancel = True
+        designer_project = self.env['designer.project'].search([
+            ('reference_projet', '=', self.id)
+        ], limit=1)
 
-        # Launch the wizard with project context
+        if designer_project:
+            designer_project.write({'state_designer': 'design_not_validated'})
+
         return {
             'name': "Invalidate Designer",
             'type': 'ir.actions.act_window',
@@ -177,6 +172,7 @@ class ProjectProjectInherit(models.Model):
         and update project state to 'bc'
         """
         self.ensure_one()
+        self.bat_cancel = False
 
         # Basic validation checks
         if not self.client:
@@ -197,12 +193,16 @@ class ProjectProjectInherit(models.Model):
                 order_line_vals = {
                     'product_id': product.product_id.id,
                     'product_uom_qty': product.quantity,
+                    'qty_delivered': product.quantity_delivered,
                     'name': product.description or product.product_id.name,
-                    'gender': product.gender,
                     'customizable': product.customizable,
-                    'quantity_delivered': product.quantity_delivered,
                     'model_design': product.model_design,
                     'model_design_filename': product.model_design_filename,
+                    'model_design_2_v': product.model_design_2_v,
+                    'model_design_filename_2_v': product.model_design_filename_2_v,
+                    'upload_bat_design': product.upload_bat_design,
+                    'bat_design_name': product.bat_design_name,
+                    # Add other relevant fields here
                 }
                 order_lines.append((0, 0, order_line_vals))
 
@@ -211,6 +211,9 @@ class ProjectProjectInherit(models.Model):
                 'partner_id': self.client.id,
                 'order_line': order_lines,
                 'reference': self.reference,
+                'bat': self.bat,
+                'bat_filename': self.bat_filename,
+                'state_commercial': self.state_commercial,
                 'date_order': fields.Datetime.now(),
                 'state': 'sale',
                 'company_id': self.env.company.id,
@@ -234,76 +237,72 @@ class ProjectProjectInherit(models.Model):
                 'bat_validated': True,
             })
 
+            # Find and update the related designer project
+            designer_project = self.env['designer.project'].search([
+                ('reference_projet', '=', self.id)
+            ], limit=1)
+
+            if designer_project:
+                designer_project.write({'state_designer': 'design_validated'})
+
             # Log the creation in the chatter
             self.message_post(
                 body=f"""Bon de commande créé avec succès:
                     - Numéro BC: {sale_order.name}
                     - Client: {self.client.name}
                     - État changé à 'BC'
+                    - Projet designer mis à jour à 'Design validé'
                     - Date de création: {fields.Datetime.now()}""",
                 message_type='notification'
             )
 
-            # Return an action to open the created sale order
-            return {
-                'name': 'Bon de Commande',
-                'type': 'ir.actions.act_window',
-                'res_model': 'sale.order',
-                'res_id': sale_order.id,
-                'view_mode': 'form',
-                'target': 'current',
-            }
-
         except Exception as e:
             raise UserError(f"Erreur lors de la création du bon de commande: {str(e)}")
 
+    def view_bc(self):
+        """
+        Open the corresponding 'Bon de Commande' form view for the related sale order.
+        """
+        self.ensure_one()  # Ensure the method is executed for a single record
+
+        # Check if a related sale order exists
+        if not self.sale_order_id:
+            raise UserError("Aucun bon de commande lié trouvé pour cet enregistrement.")
+
+        return {
+            'name': 'Bon de Commande',
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order',
+            'res_id': self.sale_order_id.id,  # Replace with the correct related sale.order field
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
     def action_review_design(self):
         """
-        Send an email to the designer and update the associated project state to 'design_in_review'.
+        Send an email to the designer.
         """
         self.ensure_one()
 
-        # Ensure a designer is assigned
+        # Ensure that the designer is set
         if not self.designer:
-            raise UserError("Aucun designer n'est attribué à ce projet.")
+            raise UserError("Le designer n'est pas défini pour ce projet.")
 
-        # Ensure the designer project exists
-        designer_project = self.env['designer.project'].search([
-            ('reference_projet', '=', self.id),
-            ('active', '=', True)  # Check only active projects
-        ], limit=1)
+        # Retrieve the email template
+        template = self.env.ref('nn_majesty.email_template_commercial_design_review', raise_if_not_found=False)
 
-        if not designer_project:
-            _logger.error(f"No active designer.project found for reference_projet={self.id}")
-            raise UserError("Aucun projet associé trouvé pour le designer.")
+        # If the template exists, send the email
+        if template:
+            template.send_mail(self.id, force_send=True)
+        else:
+            raise UserError("Le modèle d'email de révision de design est introuvable.")
 
-        try:
-            # Update the state of the designer project
-            designer_project.write({'state_designer': 'design_not_validated'})
+        # Optionally, you can log this action in the Chatter
+        self.message_post(
+            body=f"Le design a été envoyé pour révision au designer {self.designer.name}."
+        )
 
-            # Update the state of the commercial project
-            self.write({'state_commercial': 'design_in_review'})
-
-            # Send email notification to the designer
-            template_id = self.env.ref('nn_majesty.email_template_commercial_design_review').id
-            if template_id:
-                self.env['mail.template'].browse(template_id).send_mail(self.id, force_send=True)
-
-            # Log the action in the Chatter
-            self.message_post(
-                body=f"""
-                Le design a été envoyé pour révision:
-                - État du projet commercial mis à jour à 'Design en revue'
-                - État du projet designer mis à jour à 'In Review'
-                - Notification par email envoyée au designer ({self.designer.name}).
-                """
-            )
-
-            return True
-
-        except Exception as e:
-            _logger.error(f"Error during design review: {str(e)}")
-            raise UserError(f"Une erreur s'est produite lors de l'envoi pour révision: {str(e)}")
+        return True
 
     def action_send_to_usine(self):
         """
@@ -380,11 +379,11 @@ class ProjectProjectInherit(models.Model):
             # Log the action in the Chatter
             self.message_post(
                 body=f"""
-                    Projet envoyé à l'usine :
-                    - État du projet changé à 'Production'
-                    - Projet usine créé (ID: {usine_project.id})
-                    - {len(self.product_ids)} produits copiés vers le projet usine
-                    - Email de notification envoyé à l'usine."""
+                        Projet envoyé à l'usine :
+                        - État du projet changé à 'Production'
+                        - Projet usine créé (ID: {usine_project.id})
+                        - {len(self.product_ids)} produits copiés vers le projet usine
+                        - Email de notification envoyé à l'usine."""
             )
 
             # Return a success message or action
@@ -409,74 +408,33 @@ class ProjectProjectInherit(models.Model):
         """
         self.ensure_one()
 
-        # Vérifie si l'état est 'BC Confirmé'
-        if self.state_commercial != 'bc_confirme':
-            raise UserError("Le projet doit être en état 'BC Confirmé' pour demander le BAT Production.")
+        designer_project = self.env['designer.project'].search([
+            ('reference_projet', '=', self.id)
+        ], limit=1)
 
-        # Vérifie si un designer est attribué
-        if not self.designer:
-            raise UserError("Aucun designer n'est attribué à ce projet.")
-
-        # Vérifie si des documents sont associés
-        if not self.document_ids:
-            raise UserError("Aucun document n'est ajouté à ce projet.")
-
-        # Vérifie si des produits sont associés
-        if not self.product_ids:
-            raise UserError("Aucun produit n'est ajouté à ce projet.")
-
-        # Préparation des données pour le projet designer
-        designer_project_vals = {
-            'reference_projet': self.id,
-            'state_designer': 'draft',  # État initial
-            'commercial': self.env.user.id,  # Commercial actuel
-        }
-
-        # Création du projet designer
-        designer_project = self.env['designer.project'].create(designer_project_vals)
+        if designer_project:
+            designer_project.write({'state_designer': 'BAT_in_progress'})
 
         # Copier les lignes des produits
-        for product in self.product_ids:
-            self.env['commercial.products'].create({
-                'desginer_id': designer_project.id,
-                'product_id': product.product_id.id,
-                'quantity': product.quantity,
-                'gender': product.gender,
-                'quantity_delivered': product.quantity_delivered,
-                'customizable': product.customizable,
-                'description': product.description,
-                'model_design': product.model_design,
-                'model_design_filename': product.model_design_filename,
-            })
 
-        # Copier les documents
-        for document in self.document_ids:
-            self.env['commercial.documents'].create({
-                'desginer_id': designer_project.id,
-                'document_binary': document.document_binary,
-                'document_name': document.document_name,
-            })
-
-        # Mise à jour de l'état commercial
         self.write({
             'state_commercial': 'BAT_in_progress',
-            'designer_assign_date': fields.Date.context_today(self),
         })
 
         # Envoyer une notification par email au designer
-        template_id = self.env.ref('nn_majesty.email_template_designer_notification').id
+        template_id = self.env.ref('nn_majesty.email_template_designer_notification_BAT_request').id
         if template_id:
             self.env['mail.template'].browse(template_id).send_mail(self.id, force_send=True)
 
         # Log dans le chatter
         self.message_post(
             body=f"""
-            Projet envoyé au designer pour BAT Production :
-            - État changé à 'BAT Production en cours'
-            - Projet designer créé (ID: {designer_project.id})
-            - {len(self.product_ids)} produits copiés
-            - Email de notification envoyé au designer ({self.designer.name}).
-            """
+                Projet envoyé au designer pour BAT Production :
+                - État changé à 'BAT Production en cours'
+                - Projet designer créé (ID: {designer_project.id})
+                - {len(self.product_ids)} produits copiés
+                - Email de notification envoyé au designer ({self.designer.name}).
+                """
         )
 
         return True
