@@ -360,6 +360,11 @@ class ProjectProjectInherit(models.Model):
                         'description': product.description,
                         'model_design': product.model_design,
                         'model_design_filename': product.model_design_filename,
+                        'model_design_2_v': product.model_design_2_v,
+                        'model_design_filename_2_v': product.model_design_filename_2_v,
+                        'upload_bat_design': product.upload_bat_design,
+                        'bat_design_name': product.bat_design_name,
+
                     })
 
             # Update the project state to 'production'

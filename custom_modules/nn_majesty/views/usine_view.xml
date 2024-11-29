@@ -28,16 +28,23 @@
                         <field name="status_usin" widget="statusbar"/>
                     </header>
                     <sheet>
+                        <div class="oe_title">
+                        <h1 class="d-flex flex-row">
+                            <field name="is_favorite" nolabel="1" widget="boolean_favorite" class="me-2"/>
+                            <field name="reference" options="{'line_breaks': False}" widget="text"
+                                   class="o_text_overflow" readonly="1"/>
+                        </h1>
+                    </div>
                         <group>
-                            <field name="reference_projet"/>
+                            <field name="reference_projet" readonly="1"/>
                             <field name="date_livraison"/>
-                            <field name="commercial"/>
+                            <field name="commercial" readonly="1" />
                         </group>
 
                         <notebook>
                             <page string="Product Lines" name="product_lines">
                                 <!-- If you want to show related products or lines for this project -->
-                                <field name="product_ids" options="{'create': False}" nolabel="1">
+                                <field name="product_ids"  readonly="1" nolabel="1">
                                     <tree editable="bottom">
                                         <field name="product_id"/>
                                          <field name="customizable" readonly="1"/>
