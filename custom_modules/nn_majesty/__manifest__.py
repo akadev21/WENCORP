@@ -23,9 +23,10 @@
     'data': [
         # List XML files like views, security access rules, etc.
         'security/ir.model.access.csv',
+        'data/email_templates_designer.xml',
+        'data/ir_sequence_data.xml',
         'views/menu_action.xml',
         'views/commercial_project_view.xml',
-        'data/email_templates_designer.xml',
         'views/designer_project_view.xml',
         'views/commercial_sale_order.xml',
         'views/usine_view.xml',

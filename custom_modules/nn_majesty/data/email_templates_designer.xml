@@ -79,10 +79,10 @@
     <field name="model_id" ref="model_commercial_project"/>
     <field name="subject">Demande de BAT : Projet ${object.reference}</field>
     <field name="email_from">${(user.email or 'noreply@votredomaine.com')}</field>
-    <field name="email_to">${object.designer.email}</field>
+    <field name="email_to">${(object.designer.email or 'default@votredomaine.com')}</field>
     <field name="body_html">
         <![CDATA[
-        <p>Bonjour ${object.designer.name},</p>
+        <p>Bonjour ${object.designer.name or 'Cher Designer'},</p>
         <p>Une demande de production BAT a été initiée pour le projet <strong>${object.reference}</strong>.</p>
         <p>Veuillez prendre les mesures nécessaires pour avancer avec la production BAT.</p>
         <p>Pour toute information complémentaire, n'hésitez pas à me contacter.</p>
@@ -91,5 +91,6 @@
         ]]>
     </field>
 </record>
+
 
 </odoo>

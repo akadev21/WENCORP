@@ -208,6 +208,7 @@ class DesignerProject(models.Model):
 
     def send_pdf_bat(self):
         for record in self:
+            # Step 1: Update the state_designer for the record
             try:
                 record.write({'state_designer': 'BAT_completed'})
                 _logger.info(f"Updated state_designer to 'BAT_completed' for record ID: {record.id}")
@@ -215,43 +216,59 @@ class DesignerProject(models.Model):
                 _logger.error(f"Failed to update state_designer: {str(e)}")
                 raise UserError(f"Erreur lors de la mise à jour de l'état : {str(e)}")
 
-            # Ensure that reference_projet is properly set on the commercial project
-            commercial_project = self.env['commercial.project'].search([
-                ('reference_projet', '=', record.id)
-            ], limit=1)
+            # Step 2: Ensure that reference_projet is properly set
+            if not record.reference_projet or not record.reference_projet.exists():
+                _logger.error(f"Reference projet is invalid or missing for record ID: {record.id}")
+                raise UserError(f"Reference projet is invalid or missing for this designer project.")
 
-            if commercial_project:
-                commercial_project.write({'state_commercial': 'BAT_completed'})
-                _logger.info(
-                    f"Updated state_commercial to 'BAT_completed' for commercial project ID: {commercial_project.id}")
-            else:
-                _logger.error(f"No commercial project found for designer project ID: {record.id}")
-                raise UserError("No commercial project found linked to this designer project.")
+            # Get the commercial project linked to the reference_projet
+            commercial_project = record.reference_projet
 
-            # Send email notification to the commercial
             try:
-                template_id = self.env.ref('nn_majesty.email_template_commercial_design_review_bat_pfd',
-                                           raise_if_not_found=False)
-                if not template_id:
-                    _logger.error(
-                        "Email template not found: 'nn_majesty.email_template_commercial_design_review_bat_pfd'.")
-                    raise UserError("Le modèle d'email est introuvable. Veuillez vérifier sa configuration.")
-
-                # Send the email
-                template_id.send_mail(record.id, force_send=True)
-                _logger.info(f"Email notification sent successfully for record ID: {record.id}")
+                # Step 3: Check if commercial_project exists and is not deleted
+                if commercial_project.exists():
+                    # Update the state_commercial in the commercial project
+                    commercial_project.write({'state_commercial': 'BAT_completed'})
+                    _logger.info(
+                        f"Updated state_commercial to 'BAT_completed' for commercial project ID: {commercial_project.id}")
+                else:
+                    _logger.error(f"Commercial project ID {commercial_project.id} does not exist or has been deleted.")
+                    raise UserError(f"Commercial project with ID {commercial_project.id} is missing or deleted.")
             except Exception as e:
-                _logger.error(f"Failed to send email notification: {str(e)}")
-                raise UserError(f"Erreur lors de l'envoi de l'email : {str(e)}")
+                _logger.error(f"Failed to update state_commercial: {str(e)}")
+                raise UserError(f"Erreur lors de la mise à jour de l'état commercial : {str(e)}")
 
-            # Log the action in the chatter
+
+            # try:
+            #     # Check if the email template exists
+            #     template_id = self.env.ref('nn_majesty.email_template_commercial_design_review_bat_pfd',
+            #                                raise_if_not_found=False)
+            #     if not template_id:
+            #         _logger.error("Email template not found.")
+            #         raise UserError("Le modèle d'email est introuvable. Veuillez vérifier sa configuration.")
+            #
+            #     # Ensure the commercial project exists before sending email
+            #     if commercial_project.exists():
+            #         # Send the email
+            #         template_id.send_mail(record.id, force_send=True)
+            #         _logger.info(f"Email notification sent successfully for record ID: {record.id}")
+            #     else:
+            #         _logger.error(
+            #             f"Cannot send email, commercial project ID {commercial_project.id} does not exist or has been deleted.")
+            #         raise UserError(f"Cannot send email: Commercial project is missing or deleted.")
+            # except Exception as e:
+            #     _logger.error(f"Failed to send email notification: {str(e)}")
+            #     raise UserError(f"Erreur lors de l'envoi de l'email : {str(e)}")
+
+            # Step 5: Log the action in the chatter
             commercial_ref = record.reference_projet.reference if record.reference_projet else "Unknown"
             record.message_post(
                 body=f"""Design BAT PDF envoyé pour validation :
-                    - État changé à 'BAT Production terminé'
-                    - BAT Design validé pour le projet (Réf: {commercial_ref})
-                    - Email de notification envoyé à {record.commercial.name if record.commercial else "commercial inconnu"}""",
+                        - État changé à 'BAT Production terminé'
+                        - BAT Design validé pour le projet (Réf: {commercial_ref})
+                        - Email de notification envoyé à {record.commercial.name if record.commercial else "commercial inconnu"}""",
                 message_type='notification'
             )
 
         return True
+

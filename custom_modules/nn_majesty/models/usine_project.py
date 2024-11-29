@@ -1,4 +1,5 @@
-from odoo import models, fields, api
+from odoo import _, api, fields, models
+
 from odoo.exceptions import UserError
 
 
@@ -17,9 +18,8 @@ class UsineProject(models.Model):
     )
     reference = fields.Char(
         string="Référence",
-        required=True,
-        default=lambda self: self.env['ir.sequence'].next_by_code('usine.project'),
-        tracking=True
+        required=False,
+
     )
     date_livraison = fields.Datetime(
         string="Date de Livraison",
@@ -57,7 +57,8 @@ class UsineProject(models.Model):
     @api.model
     def create(self, vals):
         if not vals.get('reference'):
-            vals['reference'] = self.env['ir.sequence'].next_by_code('usine.project')
+            project_id = vals.get('reference_projet')
+            vals['reference'] = f"PROJ-{project_id}"  # Example: Reference tied to the project ID
         return super(UsineProject, self).create(vals)
 
     def action_confirm(self):

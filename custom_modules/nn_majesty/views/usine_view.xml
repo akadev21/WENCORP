@@ -10,6 +10,7 @@
                       decoration-warning="status_usin == 'confirmee'"
                       decoration-success="status_usin == 'validee'"
                       decoration-danger="status_usin == 'rejet'">
+                     <field name="reference"/>
                     <field name="reference_projet"/>
                     <field name="date_livraison"/>
                     <field name="status_usin"/>

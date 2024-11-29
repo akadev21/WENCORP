@@ -1,4 +1,5 @@
-from odoo import models, fields, api
+from odoo import _, api, fields, models
+
 from datetime import datetime
 from odoo.exceptions import UserError
 import logging
@@ -332,7 +333,8 @@ class ProjectProjectInherit(models.Model):
             usine_project_vals = {
                 'reference_projet': self.id,  # Link to this commercial.project record
                 'status_usin': 'attribuee',  # Initial state in usine
-                'commercial': self.env.user.id,  # Current user as the commercial
+                'commercial': self.env.user.id,
+                'reference': self.env['ir.sequence'].next_by_code('usine.project') or _('New'),
             }
             usine_project = self.env['usine.project'].create(usine_project_vals)
 

@@ -48,7 +48,7 @@
                             string="Demande de BAT Production"
                             type="object"
                             class="oe_highlight"
-                            invisible=" state_commercial != 'bc'"
+                            invisible=" state_commercial != 'bc_confirme'"
                     />
                 </header>
                 <field name="bat_cancel" invisible="1"/>
