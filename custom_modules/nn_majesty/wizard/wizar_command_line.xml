@@ -1,0 +1,20 @@
+<odoo>
+    <record id="view_client_command_nams_form" model="ir.ui.view">
+        <field name="name">client.command.nams.form</field>
+        <field name="model">client.command.name</field>
+        <field name="arch" type="xml">
+            <form string="Personnaliser command text">
+                <sheet>
+                    <group>
+                        <field name="number_input"/>
+                        <field name="custom_text"/>
+                    </group>
+                    <footer>
+                        <button name="save_customization" type="object" string="Save" class="oe_highlight"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

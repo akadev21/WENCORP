@@ -1,4 +1,8 @@
 from odoo import models, fields, api
+from odoo.exceptions import UserError
+import logging
+
+_logger = logging.getLogger(__name__)  # Initialize logger
 
 
 class CustomCommandWizard(models.TransientModel):
@@ -8,6 +12,54 @@ class CustomCommandWizard(models.TransientModel):
     # Link to the wizard line model using One2many
     wizard_line_ids = fields.One2many('client.command.wizard.line', 'wizard_id', string="Rows")
     order_line_id = fields.Many2one('sale.order.line', string="Ligne de commande", required=True)
+    customizable = fields.Boolean(string="Personnalisable")
+    quantity = fields.Float(
+        string="Quantité prévue",
+        readonly=True
+    )
+    total_number_input = fields.Float(
+        string="Total Nombre d'Entrées",
+        compute='_compute_total_number_input',
+        store=True
+    )
+
+    @api.depends('wizard_line_ids.number_input')
+    def _compute_total_number_input(self):
+        """
+        Compute the total sum of `number_input` fields in `wizard_line_ids`.
+        """
+        for record in self:
+            record.total_number_input = sum(line.number_input for line in record.wizard_line_ids)
+
+    @api.constrains('wizard_line_ids')
+    def _check_quantity(self):
+        """
+        Validate that the sum of `number_input` matches the `quantity`.
+        If the sum of `number_input` equals `quantity`, prevent adding new lines.
+        """
+        total_number_input = sum(line.number_input for line in self.wizard_line_ids)
+
+        if total_number_input > self.quantity:
+            raise UserError(
+                f"La somme des valeurs de 'Nombre' ({total_number_input}) dépasse la quantité ({self.quantity})."
+            )
+        if total_number_input == self.quantity:
+            raise UserError(
+                f"La somme des valeurs de 'Nombre' ({total_number_input}) est déjà égale à la quantité ({self.quantity}). Vous ne pouvez pas ajouter plus de lignes."
+            )
+
+    def add_line(self):
+        """
+        Custom method to handle the addition of a new line. It checks whether the sum
+        of 'number_input' has reached the 'quantity'. If so, it blocks the addition.
+        """
+        total_number_input = sum(line.number_input for line in self.wizard_line_ids)
+        if total_number_input >= self.quantity:
+            raise UserError(
+                "La somme des valeurs de 'Nombre' a atteint ou dépasse la quantité. Vous ne pouvez pas ajouter de nouvelles lignes."
+            )
+        # Continue adding the line
+        self.wizard_line_ids = [(0, 0, {'size': 'xs'})]  # You can replace the default field values as per your logic
 
     def apply_changes(self):
         """
@@ -51,3 +103,19 @@ class ClientCommandWizardLine(models.TransientModel):
     ], string="Size", required=True)
     number_input = fields.Integer("Enter Number")
     text_field = fields.Char("Enter les nom", store=True)
+
+    def action_customize_line_wizard(self):
+        """
+        Opens a new wizard for customizing the line's text and number input.
+        """
+        return {
+            'name': 'Personnaliser command text',
+            'type': 'ir.actions.act_window',
+            'res_model': 'client.command.name',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_wizard_id': self.id,
+                'default_number_input': self.number_input,
+            }
+        }

@@ -53,6 +53,8 @@ class UsineProject(models.Model):
     )
     notes = fields.Text(string="Notes Internes", help="Notes ou commentaires sur le projet usine.")
     is_favorite = fields.Boolean('Ajouter aux favoris')
+    bat = fields.Binary(string="BAT", attachment=True)
+    bat_filename = fields.Char("Filename")
 
     @api.model
     def create(self, vals):
@@ -118,7 +120,7 @@ class UsineProducts(models.Model):
     model_design_2_v = fields.Binary(string="Modèle design", attachment=True)
     model_design_filename_2_v = fields.Char(string="BAT Filename")
     upload_bat_design = fields.Binary(string="Upload BAT", attachment=True)
-    bat_design_name = fields.Char(required=True)
+    bat_design_name = fields.Char()
 
     _sql_constraints = [
         ('unique_product_per_usine', 'unique(usine_id, product_id)',

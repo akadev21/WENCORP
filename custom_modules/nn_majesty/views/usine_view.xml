@@ -38,6 +38,18 @@
                     </div>
                         <group>
                             <field name="reference_projet" readonly="1"/>
+
+                            <field name="commercial" readonly="1" />
+                              <field name="bat" string="BAT" widget="binary" readonly="1" filename="bat_filename"
+
+                            />
+                            <field name="bat_filename" invisible="1"
+
+                            />
+
+                        </group>
+                         <group>
+                            <field name="reference_projet" readonly="1"/>
                             <field name="date_livraison"/>
                             <field name="commercial" readonly="1" />
                         </group>
@@ -60,6 +72,19 @@
 
                                            filename="model_design_filename"/>
                                     <field name="model_design_filename" column_invisible="1"/>
+                                         <field name="model_design_2_v" string="Vue de dos"
+                                           options="{'no_create': True}"
+                                           readonly="1"
+
+                                           widget="image" class="oe_avatar"
+                                           filename="model_design_filename_2_v"/>
+                                    <field name="model_design_filename_2_v" column_invisible="1"/>
+
+                                    <field name="upload_bat_design" widget="binary" filename="bat_design_name"
+                                           string="PDF"
+                                           options="{'no_create': True}"
+                                           readonly="1"/>
+                                    <field name="bat_design_name" column_invisible="1"/>
 
                                     </tree>
                                 </field>

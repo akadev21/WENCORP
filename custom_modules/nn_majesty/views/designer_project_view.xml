@@ -15,16 +15,16 @@
                             string="Envoi Design"
                             type="object"
                             class="oe_highlight"
-                            invisible="state_designer not in ('darft','design_not_validated')"
+                            invisible="state_designer not in ('draft','design_not_validated')"
 
                             confirm="Êtes-vous sûr de vouloir envoyer ce design pour révision ?"/>
-                    <button name="send_pdf_bat"
+                    <button name="send_bat_prod_article"
                             string="Envoi BAT modéls"
                             type="object"
                             class="oe_highlight"
                             invisible="state_designer not in ('BAT_completed','BAT_in_progress')"
 
-                            confirm="Êtes-vous sûr de vouloir envoyer ce BAT PDF pour révision ?"/>
+                            confirm="Êtes-vous sûr de vouloir envoyer ce BAT prod pour révision ?"/>
                 </header>
                 <field name="bat_cancel" invisible="1"/>
 
@@ -48,6 +48,7 @@
 
                             <field name="bat_cancel" invisible="1"/>
                             <field name="bat_validated" invisible="1"/>
+                             <field name="description" />
                         </group>
                         <group>
 

@@ -100,14 +100,12 @@ class ProjectProjectInherit(models.Model):
             self.env['commercial.products'].create({
                 'desginer_id': designer_project.id,
                 'product_id': product.product_id.id,
-                'quantity': product.quantity,
+
                 'gender': product.gender,
 
-                'quantity_delivered': product.quantity_delivered,
                 'customizable': product.customizable,
                 'description': product.description,
-                'model_design': product.model_design,
-                'model_design_filename': product.model_design_filename,
+
             })
         for documents in self.document_ids:
             self.env['commercial.documents'].create({
@@ -201,20 +199,19 @@ class ProjectProjectInherit(models.Model):
                     'model_design_filename': product.model_design_filename,
                     'model_design_2_v': product.model_design_2_v,
                     'model_design_filename_2_v': product.model_design_filename_2_v,
-                    'upload_bat_design': product.upload_bat_design,
-                    'bat_design_name': product.bat_design_name,
-                    # Add other relevant fields here
+
                 }
                 order_lines.append((0, 0, order_line_vals))
 
             # Prepare sale order data
             sale_order_vals = {
+                'project_id': self.id,
                 'partner_id': self.client.id,
                 'order_line': order_lines,
                 'reference': self.reference,
                 'bat': self.bat,
                 'bat_filename': self.bat_filename,
-                'state_commercial': self.state_commercial,
+                # 'state_commercial': self.state_commercial,
                 'date_order': fields.Datetime.now(),
                 'state': 'sale',
                 'company_id': self.env.company.id,
@@ -311,17 +308,6 @@ class ProjectProjectInherit(models.Model):
         """
         self.ensure_one()
 
-        # Ensure required fields are present
-        if not self.client:
-            raise UserError("Veuillez sélectionner un client pour ce projet.")
-
-        if not self.product_ids:
-            raise UserError("Aucun produit n'est associé à ce projet.")
-
-        # Check if the current state allows sending to usine
-        if self.state_commercial != 'bc':
-            raise UserError("Le projet doit être en état 'BC' avant d'être envoyé à l'usine.")
-
         # Initialize variables and catch exceptions for robust error handling
         try:
             # Check if a project has already been sent to the usine
@@ -334,6 +320,7 @@ class ProjectProjectInherit(models.Model):
                 'reference_projet': self.id,  # Link to this commercial.project record
                 'status_usin': 'attribuee',  # Initial state in usine
                 'commercial': self.env.user.id,
+                
                 'reference': self.env['ir.sequence'].next_by_code('usine.project') or _('New'),
             }
             usine_project = self.env['usine.project'].create(usine_project_vals)
@@ -392,16 +379,6 @@ class ProjectProjectInherit(models.Model):
                         - {len(self.product_ids)} produits copiés vers le projet usine
                         - Email de notification envoyé à l'usine."""
             )
-
-            # Return a success message or action
-            return {
-                'name': 'Usine Project',
-                'type': 'ir.actions.act_window',
-                'res_model': 'usine.project',
-                'res_id': usine_project.id,
-                'view_mode': 'form',
-                'target': 'current',
-            }
 
         except UserError as user_error:
             raise user_error  # Re-raise user errors for proper handling

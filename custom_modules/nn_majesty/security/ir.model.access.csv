@@ -9,3 +9,6 @@ access_usine_project,access_usine_project,model_usine_project,,1,1,1,1
 access_usine_products,access_usine_products,model_usine_products,,1,1,1,1
 access_client_command,access_client_command,model_client_command,,1,1,1,1
 access_client_command_wizard_line,access_client_command_wizard_line,model_client_command_wizard_line,,1,1,1,1
+access_client_command_name,access_client_command_name,model_client_command_name,,1,1,1,1
+
+

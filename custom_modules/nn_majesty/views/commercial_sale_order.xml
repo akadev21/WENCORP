@@ -21,16 +21,19 @@
                 <field name="bat" string="BAT" widget="binary" readonly="1" filename="bat_filename"
 
                 />
+
                 <field name="bat_filename" invisible="1"
 
                 />
             </xpath>
-            <xpath expr="//field[@name='order_line']//tree//field[@name='discount']" position="after">
+            <xpath expr="//field[@name='order_line']//tree//field[@name='discount']" position="after" >
 
                 <field name="gender"/>
                 <field name="usine" column_invisible="1"/>
                 <field name="customizable"/>
                 <field name="quantity" column_invisible="1"/>
+                <field name="qty_invoiced" column_invisible="1"/>
+
                 <field name="quantity_delivered" column_invisible="1" />
                 <field name="description" column_invisible="1"/>
                 <field name="model_design" string="Vue de face" widget="image" class="oe_avatar"
@@ -41,14 +44,12 @@
 
                        filename="model_design_filename_2_v"/>
                 <field name="model_design_filename_2_v" column_invisible="1"/>
-                <field name="upload_bat_design" widget="binary" filename="document_name"
-                       column_invisible="1"
-                       string="BAT designer"/>
+
                 <button name="action_client_command_wizard"
                         type="object"
-                        string="Personnaliser"
+                        string="détails du commande"
                         class="oe_highlight"
-                        invisible="customizable == False"/>
+                        />
             </xpath>
 
         </field>

@@ -36,38 +36,44 @@ class SaleOrderInherit(models.Model):
     )
 
     def action_confirm_bc(self):
-        """
-        Confirmer le bon de commande et mettre à jour l'état du projet commercial.
-        """
-        self.ensure_one()  # Ensure we're working with a single record
-        _logger.info(f"Tentative de confirmation BC pour la commande {self.id}")
 
-        if not self.project_id:
-            _logger.warning(f"Aucun projet commercial trouvé pour la commande {self.id}.")
-            raise UserError("Aucun projet commercial n'a été trouvé pour cette commande.")
+        for order in self:
+            try:
 
-        try:
-            _logger.info(
-                f"Project ID associated with sale order {self.id}: {self.project_id.id} - {self.project_id.name}")
+                project_updates = {
+                    'state_commercial': 'bc_confirme',
 
-            # Update project state
-            self.project_id.write({
-                'state_commercial': 'bc_confirme'
-            })
+                }
 
-            # Confirm the sale order
-            self.action_confirm()
+                for line in order.order_line:
+                    if line.gender:
+                        project_updates['quantity'] = line.quantity
 
-            _logger.info(f"Commande confirmée pour le projet commercial {self.project_id.reference}.")
+                order.project_id.write(project_updates)
 
-            return True
+                # Log the update in the project Chatter
+                order.project_id.message_post(
+                    body=f"""Bon de commande confirmé :
+                    - État mis à jour : 'BC Confirmé'
+                    - Référence : {order.reference}
+                    - Fichier BAT : {order.bat_filename or 'Non spécifié'}
+                    - Sexe: {project_updates.get('gender', 'Non spécifié')}
+                    - Personnalisable: {project_updates.get('customizable', 'Non spécifié')}""",
+                    message_type='notification'
+                )
 
-        except UserError as ue:
-            _logger.error(f"Erreur utilisateur lors de la confirmation du BC: {str(ue)}")
-            raise ue
-        except Exception as e:
-            _logger.error(f"Erreur lors de la confirmation du BC: {str(e)}")
-            raise UserError(f"Erreur lors de la confirmation du bon de commande: {str(e)}")
+                # Optionally log in the Sale Order Chatter
+                order.message_post(
+                    body=f"Bon de commande confirmé. Projet lié mis à jour ({order.project_id.reference})."
+                )
+
+            except UserError as ue:
+                _logger.error(f"Erreur utilisateur lors de la confirmation du BC: {str(ue)}")
+                raise ue
+            except Exception as e:
+                _logger.error(f"Erreur lors de la confirmation du BC: {str(e)}")
+                raise UserError(
+                    f"Une erreur inattendue s'est produite lors de la confirmation du bon de commande: {str(e)}")
 
 
 class SaleOrderLineInherit(models.Model):
@@ -120,27 +126,19 @@ class SaleOrderLineInherit(models.Model):
     )
     model_design_filename_2_v = fields.Char(string="Nom du fichier BAT (Vue de dos)")
 
-    upload_bat_design = fields.Binary(
-        string="Upload BAT",
-        attachment=True,
-        help="Téléchargement du bon à tirer"
-    )
-    bat_design_name = fields.Char(
-        string="Nom du design BAT",
-        required=True
-    )
-
     def action_client_command_wizard(self):
         """
-        Action pour ouvrir le wizard de personnalisation du nom.
+        Action pour ouvrir le wizard .
         """
         return {
-            'name': 'Personnaliser le Nom',
+            'name': 'Personnaliser command',
             'type': 'ir.actions.act_window',
             'res_model': 'client.command',
             'view_mode': 'form',
             'target': 'new',
             'context': {
-                'default_order_line_id': self.id
+                'default_order_line_id': self.id,
+                'default_customizable': self.customizable,
+                'default_quantity': self.quantity
             }
         }

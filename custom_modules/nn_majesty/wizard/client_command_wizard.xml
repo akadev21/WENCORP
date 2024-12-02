@@ -7,21 +7,28 @@
             <form string="Personnaliser la commande">
                 <sheet>
                     <group>
-                        <field name="order_line_id" required="1"/>
+                        <field name="order_line_id" readonly="1"/>
+                        <field name="customizable" string="Personnalisable"/>
+                        <field name="quantity" readonly="1"/>
                     </group>
 
                     <!-- Table for client.command.wizard.line rows -->
                     <group>
                         <field name="wizard_line_ids">
                             <tree editable="bottom">
-                                <field name="size" required="1"/>
-                                <field name="number_input" required="1"/>
-                                <field name="text_field" />
+                                <field name="size"/>
+                                <field name="number_input"/>
+                                <field name="text_field"/>
+                                <button string="détails"
+                                        name="action_customize_line_wizard"
+                                        type="object"
+                                        class="btn-primary"/>
                             </tree>
                         </field>
                     </group>
 
                     <footer>
+
                         <button name="apply_changes" type="object" string="Appliquer" class="oe_highlight"/>
                         <button string="Annuler" class="btn-secondary" special="cancel"/>
                     </footer>
