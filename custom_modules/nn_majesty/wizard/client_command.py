@@ -63,24 +63,36 @@ class CustomCommandWizard(models.TransientModel):
 
     def apply_changes(self):
         """
-        Appliquer les changements à la ligne de commande.
+        Appliquer les changements dans le contexte du wizard, sans affecter la ligne de commande.
         """
         if self.order_line_id:
-            # Log the order_line_id and wizard lines to verify the data
+            # Log the order_line_id to verify the data
             _logger.info(f"Applying changes to Order Line {self.order_line_id.id}")
+
+            # Prepare a list to store the customizations applied within the wizard
+            customizations_applied = []
 
             for line in self.wizard_line_ids:
                 if line.text_field:
                     # Log individual line data for debugging
                     _logger.info(
-                        f"Applying customization: {line.text_field}, Size: {line.size}, Number: {line.number_input}")
+                        f"Customization: {line.text_field}, Size: {line.size}, Number: {line.number_input}")
 
-                    # Apply the changes to the order line
-                    self.order_line_id.write({
-                        'text_field': line.text_field,
+                    # Collect the customization data
+                    customizations_applied.append({
                         'size': line.size,
                         'number_input': line.number_input,
+                        'text_field': line.text_field
                     })
+
+            # Optionally, log the applied customizations
+            _logger.info(f"Customizations applied in wizard: {customizations_applied}")
+
+            # You can add any further operations based on this data without saving to the order line
+            # For example, you could create a custom record or handle it differently
+            # In this example, we're just logging the data for debugging purposes.
+
+            # Return to close the wizard
             return {'type': 'ir.actions.act_window_close'}
         else:
             _logger.error("No order line found to apply changes.")

@@ -139,7 +139,7 @@
                                     <field name="product_id" options="{'no_create': True}"/>
 
                                     <field name="usine" options="{'no_create': True}"
-                                    column_invisible="parent.state_commercial not in ('production','BAT_in_progress','BAT_completed','bc_confirme','bc')"
+                                    column_invisible="parent.state_commercial not in ('production','BAT_in_progress','BAT_completed')"
                                     />
                                     <field name="description_sale"/>
                                     <field name="quantity"

@@ -125,6 +125,8 @@ class SaleOrderLineInherit(models.Model):
         help="Fichier de conception du modèle - vue de dos"
     )
     model_design_filename_2_v = fields.Char(string="Nom du fichier BAT (Vue de dos)")
+    client_customization = fields.Text(string="Client Customization Details",
+                                       help="Detailed customization information for this order line")
 
     def action_client_command_wizard(self):
         """
@@ -139,6 +141,7 @@ class SaleOrderLineInherit(models.Model):
             'context': {
                 'default_order_line_id': self.id,
                 'default_customizable': self.customizable,
-                'default_quantity': self.quantity
+                'default_quantity': self.quantity,
+                'default_existing_customization': self.client_customization
             }
         }

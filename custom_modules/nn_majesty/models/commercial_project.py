@@ -92,7 +92,6 @@ class ProjectProjectInherit(models.Model):
             'client': self.client.id,
         }
 
-        # Create the designer project record
         designer_project = self.env['designer.project'].create(designer_project_vals)
 
         # Copy product lines to designer project
