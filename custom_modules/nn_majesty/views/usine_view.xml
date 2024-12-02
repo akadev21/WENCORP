@@ -64,7 +64,7 @@
                                         <field name="quantity" readonly="1"/>
                                          <field name="quantity_delivered"/>
                                          <field name="gender" readonly="1"/>
-                                        <field name="status_usin"/>
+
                                          <field name="model_design" string="Design"
                                            options="{'no_create': True}"
                                            readonly="1"

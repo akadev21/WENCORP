@@ -55,6 +55,12 @@ class UsineProject(models.Model):
     is_favorite = fields.Boolean('Ajouter aux favoris')
     bat = fields.Binary(string="BAT", attachment=True)
     bat_filename = fields.Char("Filename")
+    usine_id = fields.Many2one(
+        'usine',
+        string="Usine",
+        required=True,
+        help="Factory responsible for this project"
+    )
 
     @api.model
     def create(self, vals):

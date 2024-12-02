@@ -303,41 +303,43 @@ class ProjectProjectInherit(models.Model):
         return True
 
     def action_send_to_usine(self):
-        """
-        Send the project to the usine (factory) and update the project state to 'production'.
-        """
+
         self.ensure_one()
 
-        # Initialize variables and catch exceptions for robust error handling
         try:
-            # Check if a project has already been sent to the usine
-            existing_usine_project = self.env['usine.project'].search([('reference_projet', '=', self.id)], limit=1)
-            if existing_usine_project:
-                raise UserError(f"Ce projet a déjà été envoyé à l'usine (ID usine: {existing_usine_project.id}).")
-
-            # Create usine project record
-            usine_project_vals = {
-                'reference_projet': self.id,  # Link to this commercial.project record
-                'status_usin': 'attribuee',  # Initial state in usine
-                'commercial': self.env.user.id,
-                
-                'reference': self.env['ir.sequence'].next_by_code('usine.project') or _('New'),
-            }
-            usine_project = self.env['usine.project'].create(usine_project_vals)
-
-            # Copy product lines to the usine project
+            # Group products by usine
+            products_by_usine = {}
             for product in self.product_ids:
-                # Check if the product already exists in the usine project
-                existing_usine_product = self.env['usine.products'].search([
-                    ('usine_id', '=', usine_project.id),
-                    ('product_id', '=', product.product_id.id),
+                usine = product.usine
+                if not usine:
+                    raise UserError(f"Le produit {product.product_id.name} n'est pas attribué à une usine.")
+                if usine not in products_by_usine:
+                    products_by_usine[usine] = []
+                products_by_usine[usine].append(product)
+
+            for usine, products in products_by_usine.items():
+
+                existing_usine_project = self.env['usine.project'].search([
+                    ('reference_projet', '=', self.id),
+                    ('usine_id', '=', usine.id)
                 ], limit=1)
 
-                if existing_usine_product:
-                    # Update the quantity if the product already exists
-                    existing_usine_product.quantity += product.quantity
-                else:
-                    # Create a new record for the product in the usine
+                if existing_usine_project:
+                    raise UserError(
+                        f"Un projet pour l'usine {usine.name} a déjà été créé (ID usine: {existing_usine_project.id})."
+                    )
+
+                # Create a new usine project
+                usine_project_vals = {
+                    'reference_projet': self.id,
+                    'status_usin': 'attribuee',
+                    'commercial': self.env.user.id,
+                    'usine_id': usine.id,
+                    'reference': self.env['ir.sequence'].next_by_code('usine.project') or _('New'),
+                }
+                usine_project = self.env['usine.project'].create(usine_project_vals)
+
+                for product in products:
                     self.env['usine.products'].create({
                         'usine_id': usine_project.id,
                         'product_id': product.product_id.id,
@@ -353,35 +355,38 @@ class ProjectProjectInherit(models.Model):
                         'model_design_filename_2_v': product.model_design_filename_2_v,
                         'upload_bat_design': product.upload_bat_design,
                         'bat_design_name': product.bat_design_name,
-
                     })
 
-            # Update the project state to 'production'
-            self.write({'state_commercial': 'production'})
+                # # Send email notification for this usine project
+                # try:
+                #     if not usine_project.exists():
+                #         raise UserError(f"Le projet usine avec l'ID {usine_project.id} n'existe plus.")
+                #     template = self.env.ref('nn_majesty.email_template_usine_notification', raise_if_not_found=False)
+                #     if not template:
+                #         raise UserError(
+                #             f"Le modèle d'email pour la notification à l'usine {usine.name} est introuvable.")
+                #     template.send_mail(usine_project.id, force_send=True)
+                # except Exception as email_error:
+                #     _logger.error(f"Erreur lors de l'envoi de l'email à l'usine {usine.name}: {email_error}")
+                #     raise UserError(
+                #         f"Une erreur s'est produite lors de l'envoi de l'email à l'usine {usine.name}: {email_error}")
 
-            # Send email notification to the usine
-            # Send email notification to the usine
-            try:
-                template = self.env.ref('nn_majesty.email_template_usine_notification', raise_if_not_found=False)
-                if not template:
-                    raise UserError(
-                        "Le modèle d'email pour la notification à l'usine est introuvable. Veuillez le configurer.")
-                template.send_mail(self.id, force_send=True)
-            except Exception as email_error:
-                raise UserError(f"Une erreur s'est produite lors de l'envoi de l'email : {email_error}")
-
-            # Log the action in the Chatter
-            self.message_post(
-                body=f"""
-                        Projet envoyé à l'usine :
+                # Log the action for each usine
+                self.message_post(
+                    body=f"""
+                        Projet envoyé à l'usine {usine.name} :
                         - État du projet changé à 'Production'
                         - Projet usine créé (ID: {usine_project.id})
-                        - {len(self.product_ids)} produits copiés vers le projet usine
-                        - Email de notification envoyé à l'usine."""
-            )
+                        - {len(products)} produits copiés vers le projet usine
+                        - Email de notification envoyé à l'usine.
+                        """
+                )
+
+            # Update the overall project state
+            self.write({'state_commercial': 'production'})
 
         except UserError as user_error:
-            raise user_error  # Re-raise user errors for proper handling
+            raise user_error
         except Exception as e:
             raise UserError(f"Une erreur inattendue s'est produite : {str(e)}")
 
