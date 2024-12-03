@@ -1,0 +1,57 @@
+<odoo>
+    <!-- Tree View for Sale Order Line Sizes -->
+    <record id="view_sale_order_line_size_tree" model="ir.ui.view">
+        <field name="name">sale.order.line.size.tree</field>
+        <field name="model">sale.order.line.size</field>
+        <field name="arch" type="xml">
+            <tree>
+
+                <field name="size"/>
+                <field name="quantity_size"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View for Sale Order Line Sizes -->
+    <record id="view_sale_order_line_size_form" model="ir.ui.view">
+        <field name="name">sale.order.line.size.form</field>
+        <field name="model">sale.order.line.size</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+
+                        <field name="size"/>
+                        <field name="quantity" invisible="1"/>
+                         <field name="quantity_size"/>
+
+                    </group>
+                    <notebook>
+                        <page string="Names" >
+                            <field name="name_ids" options="{'create': False}">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View for Names Associated with Sizes -->
+    <record id="view_sale_order_line_size_name_tree" model="ir.ui.view">
+        <field name="name">sale.order.line.size.name.tree</field>
+        <field name="model">sale.order.line.size.name</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+
+
+
+</odoo>

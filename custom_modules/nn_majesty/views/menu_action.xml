@@ -4,6 +4,11 @@
     <menuitem name="Commercial" id="menu_root_commercial" sequence="-1"/>
     <menuitem name="Designer" id="menu_root_designer" sequence="2"/>
     <menuitem name="Usine" id="menu_usine_project_root_new" sequence="3"/>
+<!--     <menuitem id="menu_sale_order_line_size_root"-->
+<!--              name="Sizes and Quantities"-->
+<!--              sequence="10"-->
+<!--              parent="sale.sale_order_menu"-->
+<!--              action="action_sale_order_line_size"/>-->
 
 
 </odoo>

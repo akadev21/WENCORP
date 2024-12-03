@@ -10,5 +10,7 @@ access_usine_products,access_usine_products,model_usine_products,,1,1,1,1
 access_client_command,access_client_command,model_client_command,,1,1,1,1
 access_client_command_wizard_line,access_client_command_wizard_line,model_client_command_wizard_line,,1,1,1,1
 access_client_command_name,access_client_command_name,model_client_command_name,,1,1,1,1
+access_sale_order_line_size,access_sale_order_line_size,model_sale_order_line_size,,1,1,1,1
+access_sale_order_line_size_name,access_sale_order_line_size_name,model_sale_order_line_size_name,,1,1,1,1
 
 

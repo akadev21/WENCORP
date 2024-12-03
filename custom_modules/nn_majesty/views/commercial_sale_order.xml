@@ -44,12 +44,15 @@
 
                        filename="model_design_filename_2_v"/>
                 <field name="model_design_filename_2_v" column_invisible="1"/>
-
+                 <button name="open_line_details"
+                        type="object"
+                        string="Manage Details"
+                        icon="fa-list-alt"
+                        class="oe_highlight"/>
                 <button name="action_client_command_wizard"
                         type="object"
-                        string="détails du commande"
-                        class="oe_highlight"
-                        />
+                        string="Détails du commande"
+                        class="oe_highlight"/>
             </xpath>
 
         </field>

@@ -114,7 +114,7 @@ class ClientCommandWizardLine(models.TransientModel):
         ('xxxl', 'XXXL'),
     ], string="Size", required=True)
     number_input = fields.Integer("Enter Number")
-    text_field = fields.Char("Enter les nom", store=True)
+
 
     def action_customize_line_wizard(self):
         """

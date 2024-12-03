@@ -6,3 +6,5 @@ from . import sale_order_bc
 from . import usine_project
 from . import prodect_template
 from . import customer
+from . import sale_order_line_size
+from . import sale_order_line_size_name

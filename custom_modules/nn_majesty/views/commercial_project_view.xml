@@ -68,7 +68,7 @@
                                 string="Voir BC"
                                 invisible="state_commercial not in ('production','BAT_in_progress','BAT_completed','bc_confirme','bc')"
                                 class="oe_stat_button"
-                                icon="fa fa-archive"/>
+                                icon="fa-list-alt"/>
                     </div>
 
                     <div class="oe_title">
