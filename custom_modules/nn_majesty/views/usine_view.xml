@@ -85,6 +85,11 @@
                                            options="{'no_create': True}"
                                            readonly="1"/>
                                     <field name="bat_design_name" column_invisible="1"/>
+                                         <button name="open_line_details"
+                        type="object"
+                        string="Détails du commandes"
+                        icon="fa-list-alt"
+                        class="oe_highlight"/>
 
                                     </tree>
                                 </field>

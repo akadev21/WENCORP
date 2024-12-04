@@ -132,3 +132,25 @@ class UsineProducts(models.Model):
         ('unique_product_per_usine', 'unique(usine_id, product_id)',
          'Chaque produit doit être unique pour ce projet usine.')
     ]
+    size_ids = fields.One2many(
+        'sale.order.line.size',
+        'line_id',
+        string="Sizes and Quantities"
+    )
+
+    def open_line_details(self):
+        self.ensure_one()
+        action = {
+            'name': _('Size Details'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order.line.size',
+            'view_mode': 'tree,form',
+            'context': {
+                'default_order_line_id': self.id,
+                'default_customizable': self.customizable,
+                'default_quantity': self.quantity,
+
+            },
+            'target': 'new'
+        }
+        return action

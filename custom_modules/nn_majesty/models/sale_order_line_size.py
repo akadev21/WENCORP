@@ -62,7 +62,6 @@ class SaleOrderLineSize(models.Model):
             # If quantity is set to 0 or negative, clear name_ids
             self.name_ids = []
 
-    @api.model
     def create(self, vals):
         # Get the `quantity` and `quantity_size` from the values to be created
         quantity = vals.get('quantity', 0)
@@ -74,7 +73,6 @@ class SaleOrderLineSize(models.Model):
 
         return super(SaleOrderLineSize, self).create(vals)
 
-    @api.model
     def unlink(self):
         for record in self:
             if record.name_ids:  # Check if there are associated name records

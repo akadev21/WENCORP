@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import _, api, fields, models
 import os
 
 
@@ -55,3 +55,27 @@ class MajestyProducts(models.Model):
     model_design_filename_2_v = fields.Char(string="BAT Filename")
     upload_bat_design = fields.Binary(string="Upload BAT Prod", attachment=True)
     bat_design_name = fields.Char()
+    size_ids = fields.One2many(
+        'sale.order.line.size',
+        'line_id',
+        string="Sizes and Quantities"
+    )
+
+    def open_line_details(self):
+
+        self.ensure_one()
+        action = {
+            'name': _('Size Details'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order.line.size',
+            'view_mode': 'tree,form',
+            'context': {
+                'default_order_line_id': self.id,
+                'default_customizable': self.customizable,
+                'default_quantity': self.quantity,
+
+
+            },
+            'target': 'new'
+        }
+        return action

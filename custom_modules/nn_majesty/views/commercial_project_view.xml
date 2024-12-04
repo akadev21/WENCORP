@@ -173,7 +173,12 @@
                                            readonly="1"
                                            column_invisible="parent.state_commercial not in ('production','BAT_in_progress','BAT_completed','bc_confirme', 'bc')"/>
                                     <field name="bat_design_name" column_invisible="1"/>
-
+                                     <button name="open_line_details"
+                        type="object"
+                        string="Détails du commandes"
+                        icon="fa-list-alt"
+                        class="oe_highlight"
+                                      column_invisible="parent.state_commercial not in ('production','BAT_in_progress','BAT_completed','bc_confirme')"/>/>
 
                                 </tree>
                             </field>

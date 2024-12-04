@@ -35,7 +35,6 @@ class SaleOrderInherit(models.Model):
         readonly=True
     )
 
-    @api.model
     def action_confirm_bc(self):
         for order in self:
             try:
@@ -52,17 +51,14 @@ class SaleOrderInherit(models.Model):
                     quantity = line.product_uom_qty
                     quantity_size = line.quantity_size if hasattr(line,
                                                                   'quantity_size') else 0  # Ensure quantity_size exists
-                    size_info = ", ".join([size.name for size in line.size_ids])  # Collecting size names from size_ids
+                    size_info = ", ".join([size.size for size in line.size_ids])  # Collecting size names from size_ids
 
                     # Collect size values for each line
                     detail_line_value = {
-                        'size': size_info,  # Collecting size names as a string (or list of sizes if needed)
+                        'size': size_info,
                         'quantity': quantity,
                         'quantity_size': quantity_size
                     }
-
-                    # Add the line and size information to the project update
-                    project_updates['quantity'] = quantity
 
                     # Append order line details, including size and quantity_size
                     line_details.append(
@@ -167,15 +163,14 @@ class SaleOrderLineInherit(models.Model):
             'type': 'ir.actions.act_window',
             'res_model': 'sale.order.line.size',
             'view_mode': 'tree,form',
-            'domain': [('line_id', '=', self.id)],  # Filter to show only related sizes
             'context': {
                 'default_order_line_id': self.id,
                 'default_customizable': self.customizable,
                 'default_quantity': self.quantity,
                 'default_existing_customization': self.client_customization
-                # Pre-fill the relation field
+
             },
-            'target': 'current'
+            'target': 'new'
         }
         return action
 

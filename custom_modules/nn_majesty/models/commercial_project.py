@@ -57,12 +57,19 @@ class ProjectProjectInherit(models.Model):
         tracking=True  # Enable tracking for state changes
     )
 
-    @api.model
     def create(self, values):
+        # Ensure that the sequence code is correct
+        _logger.info("Attempting to generate sequence for project creation...")
+
         # Get the sequence value (this includes the prefix and number)
         sequence = self.env['ir.sequence'].next_by_code('project.reference_fix_new')
+        if not sequence:
+            raise UserError("The sequence could not be generated. Please check the sequence configuration.")
 
-        # Directly assign the sequence without zfill
+        # Log the sequence value
+        _logger.info(f"Generated sequence for project: {sequence}")
+
+        # Directly assign the sequence to the 'reference' field
         values['reference'] = sequence
 
         # Set creation date if not provided
@@ -354,6 +361,8 @@ class ProjectProjectInherit(models.Model):
                         'model_design_filename_2_v': product.model_design_filename_2_v,
                         'upload_bat_design': product.upload_bat_design,
                         'bat_design_name': product.bat_design_name,
+                        'size_ids': [(6, 0, product.size_ids.ids)] if product.size_ids else False,
+
                     })
 
                 # # Send email notification for this usine project
