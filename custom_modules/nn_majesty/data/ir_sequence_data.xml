@@ -6,5 +6,14 @@
             <field name="prefix">PROD-</field>
             <field name="padding">5</field>
         </record>
+        <record id="commercial_project_sequences_generating" model="ir.sequence">
+        <field name="name">project sequence</field>
+        <field name="code">commercial.project</field>
+        <field name="prefix">PRO-%(year)s%(month)s%(day)s-</field>
+        <field eval="1" name="number_next"/>
+        <field eval="1" name="number_increment"/>
+        <field name="padding">3</field>
+    </record>
     </data>
+
 </odoo>

@@ -154,15 +154,14 @@ class SaleOrderLineInherit(models.Model):
     )
 
     def open_line_details(self):
-        """
-        Opens the 'sale.order.line.size' details related to this sale order line.
-        """
+
         self.ensure_one()  # Ensure that the action is triggered for one record
         action = {
             'name': _('Size Details'),
             'type': 'ir.actions.act_window',
             'res_model': 'sale.order.line.size',
             'view_mode': 'tree,form',
+            'domain': [('line_id', '=', self.id)],
             'context': {
                 'default_order_line_id': self.id,
                 'default_customizable': self.customizable,
@@ -170,7 +169,7 @@ class SaleOrderLineInherit(models.Model):
                 'default_existing_customization': self.client_customization
 
             },
-            'target': 'new'
+            'target': 'current'
         }
         return action
 

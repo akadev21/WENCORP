@@ -69,6 +69,7 @@ class MajestyProducts(models.Model):
             'type': 'ir.actions.act_window',
             'res_model': 'sale.order.line.size',
             'view_mode': 'tree,form',
+            'domain': [('line_id', '=', self.id)],
             'context': {
                 'default_order_line_id': self.id,
                 'default_customizable': self.customizable,

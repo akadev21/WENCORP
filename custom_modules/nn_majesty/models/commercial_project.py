@@ -57,27 +57,15 @@ class ProjectProjectInherit(models.Model):
         tracking=True  # Enable tracking for state changes
     )
 
-    def create(self, values):
-        # Ensure that the sequence code is correct
-        _logger.info("Attempting to generate sequence for project creation...")
-
-        # Get the sequence value (this includes the prefix and number)
-        sequence = self.env['ir.sequence'].next_by_code('project.reference_fix_new')
-        if not sequence:
-            raise UserError("The sequence could not be generated. Please check the sequence configuration.")
-
-        # Log the sequence value
-        _logger.info(f"Generated sequence for project: {sequence}")
-
-        # Directly assign the sequence to the 'reference' field
-        values['reference'] = sequence
-
-        # Set creation date if not provided
-        if 'creation_date' not in values:
-            values['creation_date'] = fields.Date.context_today(self)
-
-        # Create the record
-        return super(ProjectProjectInherit, self).create(values)
+    @api.model
+    def create(self, vals):
+        res = super(ProjectProjectInherit, self).create(vals)
+        for rec in res:
+            reference = self.env['ir.sequence'].next_by_code('commercial.project')
+            rec.reference = reference
+        if 'creation_date' not in vals:
+            vals['creation_date'] = fields.Date.context_today(self)
+        return res
 
     def action_send_to_designer(self):
         # Ensure there's a designer assigned before proceeding
@@ -201,6 +189,8 @@ class ProjectProjectInherit(models.Model):
                     'qty_delivered': product.quantity_delivered,
                     'name': product.description or product.product_id.name,
                     'customizable': product.customizable,
+                    'gender': product.gender,
+
                     'model_design': product.model_design,
                     'model_design_filename': product.model_design_filename,
                     'model_design_2_v': product.model_design_2_v,
